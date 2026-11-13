@@ -1,0 +1,6 @@
+{
+  "name": "HydraPrep — Hormonal & Whole-Food Meal Planner",
+  "description": "Mobile-first hormonal meal prep, macro & micronutrient tracker, multi-region local market grocery planner, and whole-food storefront guide for men across age groups and weight classes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
