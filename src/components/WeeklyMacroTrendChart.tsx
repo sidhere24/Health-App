@@ -14,10 +14,16 @@ import type {
   DayMealSelection,
   DayOfWeek,
   MacroTargets,
+  MealTemplate,
   PortionMultipliers,
   WholeFood,
 } from '../types/nutrition';
-import { buildWeeklyMacroTrendData, FOODS_BY_ID, type WeeklyMacroTrendPoint } from '../utils/nutrition';
+import {
+  buildWeeklyMacroTrendData,
+  FOODS_BY_ID,
+  MEALS_BY_ID,
+  type WeeklyMacroTrendPoint,
+} from '../utils/nutrition';
 
 interface WeeklyMacroTrendChartProps {
   weekPlan: Record<DayOfWeek, DayMealSelection>;
@@ -27,6 +33,7 @@ interface WeeklyMacroTrendChartProps {
   fatFloorGrams: number;
   selectedDay: DayOfWeek;
   foodsById?: Record<string, WholeFood>;
+  mealsById?: Record<string, MealTemplate>;
 }
 
 type TrendSourceMode = 'planned' | 'consumed';
@@ -89,6 +96,7 @@ export function WeeklyMacroTrendChart({
   fatFloorGrams,
   selectedDay,
   foodsById = FOODS_BY_ID,
+  mealsById = MEALS_BY_ID,
 }: WeeklyMacroTrendChartProps) {
   const [sourceMode, setSourceMode] = useState<TrendSourceMode>('planned');
   const [unitMode, setUnitMode] = useState<TrendUnitMode>('percent');
@@ -102,9 +110,10 @@ export function WeeklyMacroTrendChart({
         targets,
         sourceMode,
         fatFloorGrams,
-        foodsById
+        foodsById,
+        mealsById
       ),
-    [weekPlan, multipliers, consumed, targets, sourceMode, fatFloorGrams, foodsById]
+    [weekPlan, multipliers, consumed, targets, sourceMode, fatFloorGrams, foodsById, mealsById]
   );
 
   const avgProteinPct = Math.round(

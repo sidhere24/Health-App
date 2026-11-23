@@ -1,29 +1,53 @@
 import { useMemo, useState } from 'react';
-import { Check, ExternalLink, Link2, Pencil, Search } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  Copy,
+  ExternalLink,
+  Link2,
+  Minus,
+  Pencil,
+  Plus,
+  Printer,
+  Search,
+  Share2,
+  Users,
+} from 'lucide-react';
 import { REGIONS } from '../data/regions';
 import type {
   AffiliateLinkConfig,
   LocationId,
   MarketChannel,
+  MealTemplate,
   PortionMultipliers,
   WeekPlan,
   WholeFood,
 } from '../types/nutrition';
 import { buildIngredientPurchaseLink } from '../utils/links';
 import { partitionGroceryByFulfillment } from '../utils/habits';
-import { aggregateWeeklyGrocery, formatCurrency, MEALS_BY_ID } from '../utils/nutrition';
+import {
+  aggregateWeeklyGrocery,
+  formatCurrency,
+  formatGroceryShareText,
+  MEALS_BY_ID,
+} from '../utils/nutrition';
 
 interface GroceryListViewProps {
   weekPlan: WeekPlan;
   multipliers: PortionMultipliers;
   locationId: LocationId;
+  householdServings?: number;
+  onChangeHouseholdServings?: (servings: number) => void;
   foodsById: Record<string, WholeFood>;
+  mealsById?: Record<string, MealTemplate>;
   affiliateConfig: AffiliateLinkConfig;
   pantryChecked: Record<string, boolean>;
   onTogglePantryItem: (foodId: string) => void;
   onClearPantryChecked: () => void;
   onOpenAffiliateModal: (focusFoodId?: string) => void;
   onOpenLegalModal: () => void;
+  onJumpToLabs?: () => void;
+  onNotify?: (message: string) => void;
 }
 
 const MARKET_CHANNELS: Array<MarketChannel | 'all'> = [
@@ -38,23 +62,88 @@ export function GroceryListView({
   weekPlan,
   multipliers,
   locationId,
+  householdServings = 1,
+  onChangeHouseholdServings,
   foodsById,
+  mealsById = MEALS_BY_ID,
   affiliateConfig,
   pantryChecked,
   onTogglePantryItem,
   onClearPantryChecked,
   onOpenAffiliateModal,
   onOpenLegalModal,
+  onJumpToLabs,
+  onNotify,
 }: GroceryListViewProps) {
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState<MarketChannel | 'all'>('all');
+  const [copiedJustNow, setCopiedJustNow] = useState(false);
+  const [mobileSection, setMobileSection] = useState<'list' | 'summary'>('list');
 
   const region = REGIONS[locationId] ?? REGIONS.hyderabad;
+  const servings = Math.max(1, Math.min(6, Math.round(householdServings || 1)));
 
   const summary = useMemo(
-    () => aggregateWeeklyGrocery(weekPlan, multipliers, MEALS_BY_ID, foodsById),
-    [weekPlan, multipliers, foodsById]
+    () => aggregateWeeklyGrocery(weekPlan, multipliers, mealsById, foodsById, servings),
+    [weekPlan, multipliers, mealsById, foodsById, servings]
   );
+
+  const shareText = useMemo(
+    () => formatGroceryShareText(summary.items, locationId, pantryChecked, servings),
+    [summary.items, locationId, pantryChecked, servings]
+  );
+
+  const handleCopyList = async () => {
+    let copied = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareText);
+        copied = true;
+      }
+    } catch {
+      copied = false;
+    }
+
+    if (!copied && typeof document !== 'undefined') {
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareText;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.pointerEvents = 'none';
+        document.body.appendChild(textarea);
+        textarea.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+      } catch {
+        copied = false;
+      }
+    }
+
+    if (copied) {
+      setCopiedJustNow(true);
+      window.setTimeout(() => setCopiedJustNow(false), 2000);
+      onNotify?.(`Copied ${servings}-person shopping list to clipboard`);
+    } else {
+      onNotify?.('Unable to copy automatically — try Print Sheet or Export CSV');
+    }
+  };
+
+  const handleShareList = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `HydraPrep Weekly Grocery List (${region.shortLabel})`,
+          text: shareText,
+        });
+        return;
+      } catch {
+        // User canceled or share unsupported; fall back to clipboard copy
+      }
+    }
+    await handleCopyList();
+  };
 
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -88,23 +177,81 @@ export function GroceryListView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+      <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
         <div>
-          <p className="text-xs text-slate-500">
-            Auto-Calculated From Active 7-Day Plan · {region.localNote}
+          <p className="text-xs sm:text-sm text-slate-600">
+            Scaled for {servings} {servings === 1 ? 'person' : 'people'} · {region.localNote}
           </p>
-          <h2 className="font-display text-xl font-semibold text-slate-900 mt-0.5 text-balance">
+          <h2 className="font-display text-xl sm:text-2xl font-semibold text-slate-900 mt-0.5 text-balance">
             {region.shortLabel} Weekly Market & Budget List
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto print-hidden">
+          {onChangeHouseholdServings && (
+            <div
+              aria-label="Household servings multiplier"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 min-h-[40px] bg-white border border-slate-200 rounded-lg"
+            >
+              <Users className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+              <span className="text-xs font-medium text-slate-600 whitespace-nowrap">Household:</span>
+              <button
+                type="button"
+                aria-label="Decrease grocery servings"
+                disabled={servings <= 1}
+                onClick={() => onChangeHouseholdServings(Math.max(1, servings - 1))}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+              >
+                <Minus className="w-3.5 h-3.5" />
+              </button>
+              <span className="min-w-[1.25rem] text-center text-xs font-mono tabular-nums font-semibold text-slate-900">
+                {servings}
+              </span>
+              <button
+                type="button"
+                aria-label="Increase grocery servings"
+                disabled={servings >= 6}
+                onClick={() => onChangeHouseholdServings(Math.min(6, servings + 1))}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleCopyList}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] text-xs font-medium text-white bg-teal-700 hover:bg-teal-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
+          >
+            {copiedJustNow ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copiedJustNow ? 'Copied List' : 'Copy List'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareList}
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap shrink-0"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print Sheet</span>
+          </button>
+
           <button
             type="button"
             onClick={() => onOpenAffiliateModal()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
           >
-            <Link2 className="w-3.5 h-3.5" />
+            <Link2 className="w-3.5 h-3.5 text-teal-700" />
             <span>Preferred Store</span>
           </button>
 
@@ -112,17 +259,51 @@ export function GroceryListView({
             type="button"
             onClick={onClearPantryChecked}
             disabled={checkedCount === 0}
-            className="px-3.5 py-2 min-h-[40px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
+            className="px-3 py-2 min-h-[40px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
           >
             Clear Checked ({checkedCount})
           </button>
         </div>
       </div>
 
+      {/* Mobile 2-Tab Switcher: open directly into Shopping List without long scroll */}
+      <div
+        role="tablist"
+        aria-label="Grocery screen switcher"
+        className="lg:hidden grid grid-cols-2 p-1 bg-slate-100 border border-slate-200 rounded-xl gap-1 print-hidden"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileSection === 'list'}
+          onClick={() => setMobileSection('list')}
+          className={`py-2 min-h-[42px] text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+            mobileSection === 'list'
+              ? 'bg-white text-teal-800 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Shopping List ({summary.items.length - checkedCount} left)
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobileSection === 'summary'}
+          onClick={() => setMobileSection('summary')}
+          className={`py-2 min-h-[42px] text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+            mobileSection === 'summary'
+              ? 'bg-white text-teal-800 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Budget & Pantry
+        </button>
+      </div>
+
       {/* Cost Efficiency Strip */}
       <section
         aria-label="Weekly Budget Summary"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        className={`${mobileSection === 'summary' ? 'grid' : 'hidden lg:grid'} grid-cols-2 lg:grid-cols-4 gap-4`}
       >
         <div className="bg-white border border-slate-200 rounded-xl p-4">
           <span className="text-xs text-slate-500">Weekly Market Total</span>
@@ -166,7 +347,7 @@ export function GroceryListView({
       {/* High-Intent Online Pantry Staples & Affiliate Disclosure */}
       <section
         aria-label="Shelf-Stable Pantry Essentials for Online Ordering"
-        className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3"
+        className={`${mobileSection === 'summary' ? 'block' : 'hidden lg:block'} bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
@@ -229,7 +410,7 @@ export function GroceryListView({
       </section>
 
       {/* Filter & Search Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className={`${mobileSection === 'list' ? 'flex' : 'hidden lg:flex'} flex-col lg:flex-row lg:items-center justify-between gap-3`}>
         <div className="relative w-full lg:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
@@ -272,7 +453,7 @@ export function GroceryListView({
 
       {/* Grouped Market Tables */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center space-y-3">
+        <div className={`${mobileSection === 'list' ? 'block' : 'hidden lg:block'} bg-white border border-slate-200 rounded-xl p-10 text-center space-y-3`}>
           <p className="text-sm font-medium text-slate-800">
             No grocery items match "{search}".
           </p>
@@ -288,7 +469,7 @@ export function GroceryListView({
           </button>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className={`${mobileSection === 'list' ? 'space-y-5' : 'hidden lg:block lg:space-y-5'}`}>
           {groupedChannels.map((channel) => {
             const channelItems = filteredItems.filter(
               (item) => item.food.marketChannel === channel
@@ -390,6 +571,27 @@ export function GroceryListView({
               </section>
             );
           })}
+        </div>
+      )}
+
+      {/* Next Screen Jump Bar */}
+      {onJumpToLabs && (
+        <div className="pt-1 flex flex-wrap items-center justify-between gap-2 print-hidden">
+          <button
+            type="button"
+            onClick={() => setMobileSection(mobileSection === 'list' ? 'summary' : 'list')}
+            className="lg:hidden px-3.5 py-2.5 min-h-[44px] text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-xl whitespace-nowrap"
+          >
+            {mobileSection === 'list' ? 'View Budget & Pantry' : 'Back to Shopping List'}
+          </button>
+          <button
+            type="button"
+            onClick={onJumpToLabs}
+            className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] text-xs sm:text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-xl whitespace-nowrap"
+          >
+            <span>Next: Lab Tests AI</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>

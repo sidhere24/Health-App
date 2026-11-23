@@ -5,7 +5,9 @@ import type {
   GroceryAggregateItem,
   MacroTargets,
   MealSlot,
+  MealTemplate,
   PortionMultipliers,
+  WeeklyArchiveEntry,
   WeekPlan,
   WholeFood,
 } from '../types/nutrition';
@@ -30,7 +32,8 @@ export function computeConsistencyMetrics(
   multipliers: PortionMultipliers,
   consumed: ConsumedState,
   _targets: MacroTargets,
-  foodsById: Record<string, WholeFood> = FOODS_BY_ID
+  foodsById: Record<string, WholeFood> = FOODS_BY_ID,
+  mealsById: Record<string, MealTemplate> = MEALS_BY_ID
 ): WeeklyConsistencyMetrics {
   let loggedMealsCount = 0;
   let activeDaysCount = 0;
@@ -41,7 +44,7 @@ export function computeConsistencyMetrics(
       weekPlan[day],
       multipliers[day],
       consumed[day],
-      MEALS_BY_ID,
+      mealsById,
       foodsById
     );
     loggedMealsCount += totals.consumedCount;
@@ -109,3 +112,82 @@ export function partitionGroceryByFulfillment(items: GroceryAggregateItem[]): {
 
   return { pantryOnline, freshLocal };
 }
+
+/** 5-of-7 days hormonal consistency baseline (~71.4% -> 71%) */
+export const ADHERENCE_TARGET_PCT = 71;
+
+export interface WeeklyAdherenceChartPoint {
+  weekLabel: string;
+  adherencePct: number;
+  loggedMeals: number;
+  totalMeals: number;
+  activeDays: number;
+  goalMet: boolean;
+}
+
+export interface WeeklyAdherenceSummary {
+  points: WeeklyAdherenceChartPoint[];
+  totalWeeks: number;
+  averageAdherencePct: number;
+  bestWeek: WeeklyAdherenceChartPoint | null;
+  trendDeltaPct: number | null;
+}
+
+/**
+ * Normalizes archived weekHistory entries for the Recharts adherence bar chart
+ * and computes summary statistics (average, best week, and week-over-week delta).
+ */
+export function buildWeeklyAdherenceChartData(
+  weekHistory: WeeklyArchiveEntry[],
+  maxWeeks = 8
+): WeeklyAdherenceSummary {
+  if (weekHistory.length === 0) {
+    return {
+      points: [],
+      totalWeeks: 0,
+      averageAdherencePct: 0,
+      bestWeek: null,
+      trendDeltaPct: null,
+    };
+  }
+
+  const normalized: WeeklyAdherenceChartPoint[] = weekHistory.map((entry) => {
+    const adherencePct = Math.max(0, Math.min(100, Math.round(entry.adherencePct)));
+    return {
+      weekLabel: entry.weekLabel,
+      adherencePct,
+      loggedMeals: entry.loggedMeals,
+      totalMeals: entry.totalMeals,
+      activeDays: entry.activeDays,
+      goalMet: entry.activeDays >= 5 || adherencePct >= ADHERENCE_TARGET_PCT,
+    };
+  });
+
+  const sumPct = normalized.reduce((sum, item) => sum + item.adherencePct, 0);
+  const averageAdherencePct = Math.round(sumPct / normalized.length);
+
+  let bestWeek = normalized[0];
+  for (const item of normalized) {
+    if (item.adherencePct >= bestWeek.adherencePct) {
+      bestWeek = item;
+    }
+  }
+
+  const trendDeltaPct =
+    normalized.length >= 2
+      ? normalized[normalized.length - 1].adherencePct -
+        normalized[normalized.length - 2].adherencePct
+      : null;
+
+  const limit = Math.max(1, maxWeeks);
+  const points = normalized.length > limit ? normalized.slice(-limit) : normalized;
+
+  return {
+    points,
+    totalWeeks: normalized.length,
+    averageAdherencePct,
+    bestWeek,
+    trendDeltaPct,
+  };
+}
+

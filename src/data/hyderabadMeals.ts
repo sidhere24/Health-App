@@ -634,6 +634,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Testosterone & Steroidogenesis',
     prepTimeMinutes: 14,
+    difficulty: 'Moderate',
     batchFriendly: false,
     ingredients: [
       { foodId: 'whole_eggs', grams: 200, prepNote: '4 whole eggs' },
@@ -656,6 +657,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 15,
+    difficulty: 'Pro',
     batchFriendly: true,
     ingredients: [
       { foodId: 'moong_dal', grams: 80, prepNote: 'soaked & ground batter' },
@@ -676,6 +678,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Sperm Quality & Zinc/Selenium',
     prepTimeMinutes: 10,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'rolled_oats', grams: 60 },
@@ -697,6 +700,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Testosterone & Steroidogenesis',
     prepTimeMinutes: 15,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'paneer', grams: 100 },
@@ -718,6 +722,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Cortisol & Stress Recovery',
     prepTimeMinutes: 10,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'kala_chana', grams: 65, prepNote: 'dry weight, boiled batch' },
@@ -738,6 +743,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Testosterone & Steroidogenesis',
     prepTimeMinutes: 15,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'moong_dal', grams: 85, prepNote: 'soaked & ground batter' },
@@ -759,6 +765,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'breakfast',
     focusTag: 'Sperm Quality & Zinc/Selenium',
     prepTimeMinutes: 8,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'rolled_oats', grams: 65 },
@@ -782,6 +789,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'lunch',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 20,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'chicken_breast', grams: 180 },
@@ -805,6 +813,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'lunch',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 22,
+    difficulty: 'Pro',
     batchFriendly: true,
     ingredients: [
       { foodId: 'bangda_mackerel', grams: 200, prepNote: '2 medium fish fillets/steaks' },
@@ -827,6 +836,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'lunch',
     focusTag: 'Testosterone & Steroidogenesis',
     prepTimeMinutes: 25,
+    difficulty: 'Pro',
     batchFriendly: true,
     ingredients: [
       { foodId: 'chicken_thigh', grams: 180 },
@@ -848,6 +858,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'lunch',
     focusTag: 'Sperm Quality & Zinc/Selenium',
     prepTimeMinutes: 25,
+    difficulty: 'Pro',
     batchFriendly: true,
     ingredients: [
       { foodId: 'rohu_fish', grams: 220 },
@@ -869,6 +880,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'lunch',
     focusTag: 'Cortisol & Stress Recovery',
     prepTimeMinutes: 18,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'paneer', grams: 120 },
@@ -890,6 +902,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'lunch',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 20,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'soya_chunks', grams: 65, prepNote: 'dry weight, boiled & minced' },
@@ -914,6 +927,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'snack',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 5,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'watermelon', grams: 300, prepNote: 'include pale rind border' },
@@ -932,6 +946,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'snack',
     focusTag: 'Sperm Quality & Zinc/Selenium',
     prepTimeMinutes: 5,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'pomegranate', grams: 120 },
@@ -951,6 +966,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'snack',
     focusTag: 'Testosterone & Steroidogenesis',
     prepTimeMinutes: 5,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'sweet_potato', grams: 180, prepNote: 'pre-roasted batch' },
@@ -970,6 +986,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'snack',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 7,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'beetroot', grams: 140, prepNote: 'blended with water & lemon' },
@@ -989,18 +1006,39 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'snack',
     focusTag: 'Cortisol & Stress Recovery',
     prepTimeMinutes: 10,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'soya_chunks', grams: 35, prepNote: 'dry weight, pan-crisped' },
       { foodId: 'kala_chana', grams: 40, prepNote: 'dry weight, boiled' },
       { foodId: 'pumpkin_seeds', grams: 15 },
-      { foodId: 'groundnut_oil', grams: 5 },
+      { foodId: 'black_sesame', grams: 10, prepNote: 'dry-roasted til' },
     ],
     prepSteps: [
-      'Dry-roast boiled squeezed soya chunks and cooked kala chana with 1 tsp oil, garlic powder, and chaat masala.',
-      'Toss in roasted pumpkin seeds before serving.',
+      'Dry-roast boiled squeezed soya chunks and cooked kala chana with garlic powder and chaat masala.',
+      'Toss in roasted pumpkin and black sesame seeds before serving.',
     ],
     hormonalBenefit: 'Ultra-budget 28g protein snack with >4 mg zinc and >200 mg magnesium.',
+  },
+  {
+    id: 'sn_watermelon_chana_seeds',
+    name: 'Watermelon, Spiced Kala Chana & Pumpkin-Sesame Bowl',
+    slot: 'snack',
+    focusTag: 'Nitric Oxide & Vascular Flow',
+    prepTimeMinutes: 5,
+    difficulty: 'Easy',
+    batchFriendly: true,
+    ingredients: [
+      { foodId: 'watermelon', grams: 280, prepNote: 'chilled cubes with pale rind border' },
+      { foodId: 'kala_chana', grams: 45, prepNote: 'dry weight, pre-boiled batch' },
+      { foodId: 'pumpkin_seeds', grams: 22, prepNote: 'dry roasted' },
+      { foodId: 'black_sesame', grams: 10, prepNote: 'dry roasted' },
+    ],
+    prepSteps: [
+      'Toss pre-boiled kala chana with lemon juice, roasted cumin, and roasted seeds.',
+      'Serve alongside chilled watermelon cubes for a nut-free, dairy-free, soy-free pre-training snack.',
+    ],
+    hormonalBenefit: 'Allergen-friendly nitric oxide and zinc boost pairing L-citrulline with pumpkin and sesame minerals.',
   },
 
   // DINNERS (5)
@@ -1010,6 +1048,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'dinner',
     focusTag: 'Cortisol & Stress Recovery',
     prepTimeMinutes: 18,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'chicken_breast', grams: 170 },
@@ -1032,6 +1071,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'dinner',
     focusTag: 'Testosterone & Steroidogenesis',
     prepTimeMinutes: 18,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'paneer', grams: 105 },
@@ -1054,6 +1094,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'dinner',
     focusTag: 'Sperm Quality & Zinc/Selenium',
     prepTimeMinutes: 18,
+    difficulty: 'Moderate',
     batchFriendly: true,
     ingredients: [
       { foodId: 'whole_eggs', grams: 150, prepNote: '3 eggs folded into keema' },
@@ -1075,6 +1116,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'dinner',
     focusTag: 'Nitric Oxide & Vascular Flow',
     prepTimeMinutes: 20,
+    difficulty: 'Pro',
     batchFriendly: true,
     ingredients: [
       { foodId: 'bangda_mackerel', grams: 180 },
@@ -1095,6 +1137,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'dinner',
     focusTag: 'Cortisol & Stress Recovery',
     prepTimeMinutes: 22,
+    difficulty: 'Pro',
     batchFriendly: true,
     ingredients: [
       { foodId: 'chicken_thigh', grams: 160 },
@@ -1116,6 +1159,7 @@ export const MEAL_LIBRARY: MealTemplate[] = [
     slot: 'dinner',
     focusTag: 'Cortisol & Stress Recovery',
     prepTimeMinutes: 20,
+    difficulty: 'Easy',
     batchFriendly: true,
     ingredients: [
       { foodId: 'paneer', grams: 110 },

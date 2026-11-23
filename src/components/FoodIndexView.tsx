@@ -3,16 +3,18 @@ import { ExternalLink, Link2, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { REGIONS } from '../data/regions';
 import type {
   AffiliateLinkConfig,
+  BiologicalSex,
   HormonalPathway,
   LocationId,
   MarketChannel,
   WholeFood,
 } from '../types/nutrition';
 import { buildIngredientPurchaseLink } from '../utils/links';
-import { filterWholeFoods, formatCurrency } from '../utils/nutrition';
+import { filterWholeFoods, formatCurrency, getInclusivePathwayLabel } from '../utils/nutrition';
 
 interface FoodIndexViewProps {
   locationId: LocationId;
+  sex?: BiologicalSex;
   foods: WholeFood[];
   affiliateConfig: AffiliateLinkConfig;
   onOpenAddFoodModal: () => void;
@@ -38,6 +40,7 @@ const MARKETS: Array<MarketChannel | 'all'> = [
 
 export function FoodIndexView({
   locationId,
+  sex = 'neutral',
   foods,
   affiliateConfig,
   onOpenAddFoodModal,
@@ -59,11 +62,11 @@ export function FoodIndexView({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-600">
             {foods.length} Verified Whole Foods · {region.shortLabel} Pricing & Sourcing
           </p>
-          <h2 className="font-display text-xl font-semibold text-slate-900 mt-0.5 text-balance">
-            {region.shortLabel} Whole-Food & Hormonal Science Index
+          <h2 className="font-display text-xl sm:text-2xl font-semibold text-slate-900 mt-0.5 text-balance">
+            {region.shortLabel} Whole-Food & Nutrition Index
           </h2>
         </div>
 
@@ -119,7 +122,7 @@ export function FoodIndexView({
 
         <div
           role="group"
-          aria-label="Filter by hormonal pathway"
+          aria-label="Filter by nutrition benefit"
           className="flex flex-wrap items-center gap-1.5"
         >
           {PATHWAYS.map((p) => {
@@ -130,13 +133,13 @@ export function FoodIndexView({
                 type="button"
                 onClick={() => setPathway(p)}
                 aria-pressed={active}
-                className={`px-3 py-1.5 min-h-[36px] text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
+                className={`px-3 py-1.5 min-h-[38px] text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
                   active
                     ? 'bg-teal-700 text-white border-teal-700'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                {p === 'all' ? 'All Pathways' : p}
+                {p === 'all' ? 'All Benefits' : getInclusivePathwayLabel(p, sex)}
               </button>
             );
           })}
@@ -177,7 +180,7 @@ export function FoodIndexView({
                 <div className="space-y-2">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-xs text-teal-800 font-medium">
-                      {food.primaryPathway}
+                      {getInclusivePathwayLabel(food.primaryPathway, sex)}
                       {food.isCustom && (
                         <span className="text-slate-500 font-normal"> · Custom Local</span>
                       )}
@@ -196,7 +199,7 @@ export function FoodIndexView({
                     </p>
                   </div>
 
-                  <p className="text-xs text-slate-700 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                     {food.bioactiveMechanism}
                   </p>
                 </div>

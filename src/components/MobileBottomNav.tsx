@@ -1,4 +1,4 @@
-import { CalendarDays, CheckSquare, Leaf, ShoppingBag, SlidersHorizontal } from 'lucide-react';
+import { CalendarDays, CheckSquare, FlaskConical, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 import type { ActiveTab } from './SidebarNav';
 
 interface MobileBottomNavProps {
@@ -9,9 +9,9 @@ interface MobileBottomNavProps {
 
 const TABS: Array<{ id: ActiveTab; label: string; icon: typeof CheckSquare }> = [
   { id: 'overview', label: 'Today', icon: CheckSquare },
-  { id: 'weekly', label: 'Week', icon: CalendarDays },
-  { id: 'grocery', label: 'Grocery', icon: ShoppingBag },
-  { id: 'foods', label: 'Foods', icon: Leaf },
+  { id: 'weekly', label: 'Next Week', icon: CalendarDays },
+  { id: 'grocery', label: 'Shop', icon: ShoppingBag },
+  { id: 'labs', label: 'Labs AI', icon: FlaskConical },
 ];
 
 export function MobileBottomNav({
@@ -38,7 +38,9 @@ export function MobileBottomNav({
             }`}
           >
             <Icon className={`w-5 h-5 ${active ? 'text-teal-700' : 'text-slate-500'}`} />
-            <span className="text-[11px] tracking-tight mt-0.5 leading-none">{tab.label}</span>
+            <span className="text-[11px] tracking-tight mt-0.5 leading-none whitespace-nowrap">
+              {tab.label}
+            </span>
           </button>
         );
       })}
@@ -46,11 +48,17 @@ export function MobileBottomNav({
       <button
         type="button"
         onClick={onOpenProfileDrawer}
-        aria-label="Open Profile, Region & Affiliate Settings"
-        className="flex flex-col items-center justify-center min-h-[48px] rounded-lg text-slate-500 hover:text-slate-900 transition-colors"
+        aria-label="Open Food Index, Profile and Settings"
+        className={`flex flex-col items-center justify-center min-h-[48px] rounded-lg transition-colors ${
+          activeTab === 'foods' ? 'text-teal-700 font-semibold' : 'text-slate-500 hover:text-slate-900'
+        }`}
       >
-        <SlidersHorizontal className="w-5 h-5 text-slate-500" />
-        <span className="text-[11px] tracking-tight mt-0.5 leading-none">Profile</span>
+        <SlidersHorizontal
+          className={`w-5 h-5 ${activeTab === 'foods' ? 'text-teal-700' : 'text-slate-500'}`}
+        />
+        <span className="text-[11px] tracking-tight mt-0.5 leading-none whitespace-nowrap">
+          More
+        </span>
       </button>
     </nav>
   );

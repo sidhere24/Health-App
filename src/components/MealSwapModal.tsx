@@ -3,17 +3,27 @@ import { ArrowRight, Check, X } from 'lucide-react';
 import { MEAL_LIBRARY } from '../data/hyderabadMeals';
 import { REGIONS } from '../data/regions';
 import type {
+  AllergenId,
+  BiologicalSex,
   DayOfWeek,
   DietPreference,
   LocationId,
+  MealDifficulty,
   MealSlot,
   MealTemplate,
   WholeFood,
 } from '../types/nutrition';
 import {
+  ALLERGEN_OPTIONS,
   computeMealNutrition,
   formatCurrency,
+  getInclusivePathwayLabel,
+  getMealAllergens,
+  getMealDifficulty,
   isMealCompatibleWithDiet,
+  isMealSafeForAllergens,
+  matchesDifficultyFilter,
+  MEAL_DIFFICULTIES,
 } from '../utils/nutrition';
 
 interface MealSwapModalProps {
@@ -24,7 +34,10 @@ interface MealSwapModalProps {
   portionMultiplier: number;
   locationId: LocationId;
   diet?: DietPreference;
+  sex?: BiologicalSex;
+  excludedAllergens?: AllergenId[];
   foodsById: Record<string, WholeFood>;
+  mealLibrary?: MealTemplate[];
   onSelectMeal: (mealId: string) => void;
   onClose: () => void;
 }
@@ -36,6 +49,12 @@ const SLOT_TITLES: Record<MealSlot, string> = {
   dinner: 'Dinner',
 };
 
+const DIFFICULTY_TEXT_STYLE: Record<MealDifficulty, string> = {
+  Easy: 'text-teal-700 font-semibold',
+  Moderate: 'text-amber-700 font-semibold',
+  Pro: 'text-indigo-700 font-semibold',
+};
+
 export function MealSwapModal({
   isOpen,
   day,
@@ -44,15 +63,20 @@ export function MealSwapModal({
   portionMultiplier,
   locationId,
   diet = 'non-veg',
+  sex = 'neutral',
+  excludedAllergens = [],
   foodsById,
+  mealLibrary = MEAL_LIBRARY,
   onSelectMeal,
   onClose,
 }: MealSwapModalProps) {
   const [showAllDiets, setShowAllDiets] = useState(false);
+  const [difficultyFilter, setDifficultyFilter] = useState<MealDifficulty | 'all'>('all');
 
   useEffect(() => {
     if (!isOpen) return;
     setShowAllDiets(false);
+    setDifficultyFilter('all');
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -63,10 +87,18 @@ export function MealSwapModal({
   if (!isOpen) return null;
 
   const region = REGIONS[locationId] ?? REGIONS.hyderabad;
-  const allSlotMeals: MealTemplate[] = MEAL_LIBRARY.filter((m) => m.slot === slot);
-  const alternatives: MealTemplate[] = showAllDiets
+  const allergenLabelsById = Object.fromEntries(ALLERGEN_OPTIONS.map((o) => [o.id, o.label]));
+  const allSlotMeals: MealTemplate[] = mealLibrary.filter((m) => m.slot === slot);
+  const dietAlternatives: MealTemplate[] = showAllDiets
     ? allSlotMeals
-    : allSlotMeals.filter((m) => isMealCompatibleWithDiet(m, diet));
+    : allSlotMeals.filter(
+        (m) =>
+          (m.id.startsWith('ai_meal_') || isMealCompatibleWithDiet(m, diet)) &&
+          isMealSafeForAllergens(m, excludedAllergens, foodsById)
+      );
+  const alternatives: MealTemplate[] = dietAlternatives.filter((m) =>
+    matchesDifficultyFilter(m, difficultyFilter)
+  );
   const currentMeal = allSlotMeals.find((m) => m.id === currentMealId);
   const currentStats = currentMeal
     ? computeMealNutrition(currentMeal, portionMultiplier, foodsById)
@@ -94,13 +126,13 @@ export function MealSwapModal({
             </h2>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {diet !== 'non-veg' && (
+            {(diet !== 'non-veg' || excludedAllergens.length > 0) && (
               <button
                 type="button"
                 onClick={() => setShowAllDiets((prev) => !prev)}
                 className="px-2.5 py-1.5 min-h-[34px] text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors whitespace-nowrap"
               >
-                {showAllDiets ? `Filter: ${diet}` : 'Show all diets'}
+                {showAllDiets ? 'Apply diet & allergy filters' : 'Show all meals'}
               </button>
             )}
             <button
@@ -114,39 +146,96 @@ export function MealSwapModal({
           </div>
         </div>
 
-        <div className="overflow-y-auto divide-y divide-slate-200">
-          {alternatives.map((meal) => {
-            const stats = computeMealNutrition(meal, portionMultiplier, foodsById);
-            const isCurrent = meal.id === currentMealId;
-            const costDelta = currentStats
-              ? Math.round((stats.costInr - currentStats.costInr) * 100) / 100
-              : 0;
-            const proteinDelta = currentStats
-              ? Math.round((stats.proteinG - currentStats.proteinG) * 10) / 10
-              : 0;
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 bg-slate-50 border-b border-slate-200">
+          <span className="text-xs text-slate-600 font-medium">
+            Filter by prep difficulty ({alternatives.length} option{alternatives.length === 1 ? '' : 's'})
+          </span>
+          <div
+            role="group"
+            aria-label="Filter swap options by difficulty"
+            className="inline-flex items-center p-0.5 bg-slate-100 border border-slate-200 rounded-lg"
+          >
+            {(['all', ...MEAL_DIFFICULTIES] as const).map((level) => {
+              const isSelected = difficultyFilter === level;
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setDifficultyFilter(level)}
+                  className={`px-2.5 py-1 min-h-[30px] text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                    isSelected
+                      ? 'bg-white text-slate-900 shadow-xs border border-slate-200/70'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {level === 'all' ? 'All' : level}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-            return (
-              <div
-                key={meal.id}
-                className={`p-5 transition-colors ${isCurrent ? 'bg-teal-50/50' : 'hover:bg-slate-50'}`}
+        <div className="overflow-y-auto divide-y divide-slate-200">
+          {alternatives.length === 0 ? (
+            <div className="p-8 text-center space-y-3">
+              <p className="text-sm font-medium text-slate-800">
+                No {difficultyFilter} {SLOT_TITLES[slot].toLowerCase()} options match the current filter.
+              </p>
+              <button
+                type="button"
+                onClick={() => setDifficultyFilter('all')}
+                className="px-3.5 py-2 min-h-[38px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span>{meal.focusTag}</span>
-                      <span aria-hidden="true">·</span>
-                      <span className="tabular-nums">{meal.prepTimeMinutes} min</span>
-                      {meal.batchFriendly && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          <span>Batch-friendly</span>
-                        </>
-                      )}
-                    </div>
-                    <h3 className="font-display text-sm font-semibold text-slate-900">
-                      {meal.name}
-                    </h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">{meal.hormonalBenefit}</p>
+                Show All Difficulties
+              </button>
+            </div>
+          ) : (
+            alternatives.map((meal) => {
+              const stats = computeMealNutrition(meal, portionMultiplier, foodsById);
+              const difficulty = getMealDifficulty(meal);
+              const isCurrent = meal.id === currentMealId;
+              const costDelta = currentStats
+                ? Math.round((stats.costInr - currentStats.costInr) * 100) / 100
+                : 0;
+              const proteinDelta = currentStats
+                ? Math.round((stats.proteinG - currentStats.proteinG) * 10) / 10
+                : 0;
+
+              return (
+                <div
+                  key={meal.id}
+                  className={`p-5 transition-colors ${isCurrent ? 'bg-teal-50/50' : 'hover:bg-slate-50'}`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="space-y-1.5 min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+                        <span className={DIFFICULTY_TEXT_STYLE[difficulty]}>{difficulty}</span>
+                        <span aria-hidden="true">·</span>
+                        <span className="font-mono tabular-nums">{meal.prepTimeMinutes} min</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{getInclusivePathwayLabel(meal.focusTag, sex)}</span>
+                        {meal.batchFriendly && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span>Batch-friendly</span>
+                          </>
+                        )}
+                        {getMealAllergens(meal, foodsById).length > 0 && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span className="text-slate-500">
+                              {getMealAllergens(meal, foodsById)
+                                .map((a) => allergenLabelsById[a] ?? a)
+                                .join(', ')}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <h3 className="font-display text-sm sm:text-base font-semibold text-slate-900">
+                        {meal.name}
+                      </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{meal.hormonalBenefit}</p>
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-xs font-mono tabular-nums text-slate-700">
                       <span>{stats.calories} kcal</span>
@@ -205,7 +294,8 @@ export function MealSwapModal({
                 </div>
               </div>
             );
-          })}
+          })
+          )}
         </div>
       </div>
     </div>
