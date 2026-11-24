@@ -97,6 +97,22 @@ app.get('/api/regional-foods/:regionId', async (req: Request, res: Response) => 
   }
 });
 
+app.post('/api/ai/lab-insights', async (req: Request, res: Response) => {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    res.status(500).json({ error: 'Gemini AI is not configured on this server. Ask the administrator to set GEMINI_API_KEY.' });
+    return;
+  }
+  try {
+    // Placeholder: real lab-insights logic would call the Gemini API here.
+    // The endpoint exists so the client can probe server readiness.
+    res.status(501).json({ error: 'Gemini lab insights endpoint is not implemented on this server yet.' });
+  } catch (error) {
+    console.error('[ai/lab-insights] failed:', error);
+    res.status(500).json({ error: 'Lab insights failed' });
+  }
+});
+
 // Production single-origin: the server also serves the built frontend.
 if (existsSync(distDir)) {
   app.use(express.static(distDir));

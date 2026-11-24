@@ -10,8 +10,8 @@ interface MobileBottomNavProps {
 const TABS: Array<{ id: ActiveTab; label: string; icon: typeof CheckSquare }> = [
   { id: 'overview', label: 'Today', icon: CheckSquare },
   { id: 'weekly', label: 'Next Week', icon: CalendarDays },
-  { id: 'grocery', label: 'Shop', icon: ShoppingBag },
-  { id: 'labs', label: 'Labs AI', icon: FlaskConical },
+  { id: 'grocery', label: 'Grocery List', icon: ShoppingBag },
+  { id: 'labs', label: 'Lab Tests AI', icon: FlaskConical },
 ];
 
 export function MobileBottomNav({

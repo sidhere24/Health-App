@@ -1,6 +1,7 @@
 import { type ChangeEvent, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowRight,
   Check,
   ClipboardList,
@@ -60,6 +61,7 @@ export function LabInsightsView({
   const [selectedTestIds, setSelectedTestIds] = useState<Record<string, boolean>>({});
   const [loadingMode, setLoadingMode] = useState<'analyze_results' | 'suggest_tests' | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [aiServerUnavailable, setAiServerUnavailable] = useState(false);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -139,7 +141,11 @@ export function LabInsightsView({
 
       const data = (await res.json()) as { report?: LabAiInsightReport; error?: string };
       if (!res.ok || !data.report) {
-        setErrorMsg(data.error ?? 'Could not generate Gemini lab insights right now.');
+        const msg = data.error ?? 'Could not generate Gemini lab insights right now.';
+        setErrorMsg(msg);
+        if (msg.includes('GEMINI_API_KEY') || msg.includes('not configured')) {
+          setAiServerUnavailable(true);
+        }
         return;
       }
 
@@ -192,6 +198,22 @@ export function LabInsightsView({
 
   return (
     <div className="space-y-5">
+      {aiServerUnavailable && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+          <div className="text-sm sm:text-base text-amber-800">
+            <strong className="font-semibold">AI features unavailable:</strong>
+            Gemini AI is not configured on this server (missing GEMINI_API_KEY). Upload and manual entry still work — AI analysis will be available once the server key is set.
+          </div>
+          <button
+            type="button"
+            onClick={() => setAiServerUnavailable(false)}
+            className="text-xs sm:text-sm text-amber-700 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       {/* Header + 3-Screen Non-Scrolling Switcher */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
