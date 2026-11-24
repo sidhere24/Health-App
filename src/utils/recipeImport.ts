@@ -60,6 +60,7 @@ export function recipeToMeal(info: SpoonCharacterRecipeInfo, slot: MealSlot): Me
 
   return {
     id: `spoon_recipe_${info.id}`,
+    difficulty: 'Easy',
     name: title,
     slot,
     focusTag: 'Nitric Oxide & Vascular Flow',

@@ -1,5 +1,6 @@
 import type {
   AgeGroupId,
+  BiologicalSex,
   LocationId,
   MarketChannel,
   StorePlatform,
@@ -56,58 +57,58 @@ export interface RegionConfig {
 export const AGE_GROUPS: AgeGroupPreset[] = [
   {
     id: '18-25',
-    label: '18–25 yrs · Peak Anabolic',
+    label: '18–25 yrs · Foundation & Growth',
     defaultAge: 22,
     proteinBonusGPerKg: 0,
     zincMg: 13,
     magnesiumMg: 400,
     seleniumMcg: 60,
     nitratesMg: 300,
-    guidanceNote: 'Higher caloric throughput for growth, training recovery, and baseline androgen output.',
+    guidanceNote: 'Supports active energy throughput, training recovery, and foundational metabolic health.',
   },
   {
     id: '26-35',
-    label: '26–35 yrs · Prime Recomp',
+    label: '26–35 yrs · Active Prime',
     defaultAge: 32,
     proteinBonusGPerKg: 0,
     zincMg: 14,
     magnesiumMg: 420,
     seleniumMcg: 65,
     nitratesMg: 320,
-    guidanceNote: 'Balances stress resilience, zinc/selenium sperm quality, and endothelial nitric oxide.',
+    guidanceNote: 'Balances daily stress resilience, reproductive minerals, and healthy circulation.',
   },
   {
     id: '36-45',
-    label: '36–45 yrs · Hormone Guard',
+    label: '36–45 yrs · Midlife Balance',
     defaultAge: 40,
     proteinBonusGPerKg: 0.08,
     zincMg: 15,
     magnesiumMg: 430,
     seleniumMcg: 70,
     nitratesMg: 350,
-    guidanceNote: 'Raises zinc, magnesium, and nitrates to protect free testosterone and vascular elasticity.',
+    guidanceNote: 'Prioritizes lean muscle protection, mineral adequacy, and vascular elasticity.',
   },
   {
     id: '46-60',
-    label: '46–60 yrs · Vitality Focus',
+    label: '46–60 yrs · Strength & Longevity',
     defaultAge: 52,
     proteinBonusGPerKg: 0.15,
     zincMg: 15,
     magnesiumMg: 440,
     seleniumMcg: 75,
     nitratesMg: 380,
-    guidanceNote: 'Extra leucine-rich protein overcomes anabolic resistance while supporting prostate & vascular health.',
+    guidanceNote: 'Higher leucine-rich protein counters age-related muscle loss while supporting heart & hormone balance.',
   },
   {
     id: '60+',
-    label: '60+ yrs · Healthy Aging',
+    label: '60+ yrs · Vital Aging',
     defaultAge: 64,
     proteinBonusGPerKg: 0.2,
     zincMg: 15,
     magnesiumMg: 440,
     seleniumMcg: 75,
     nitratesMg: 400,
-    guidanceNote: 'Prioritizes muscle preservation, easy-digest proteins, and nitrate-rich blood flow foods.',
+    guidanceNote: 'Focuses on easy-to-digest protein, bone & muscle preservation, and nitrate-rich blood flow foods.',
   },
 ];
 
@@ -417,6 +418,25 @@ export function getAgeGroupForAge(age: number): AgeGroupPreset {
   if (age <= 45) return AGE_GROUPS[2];
   if (age <= 60) return AGE_GROUPS[3];
   return AGE_GROUPS[4];
+}
+
+export function getAgeGuidanceForSex(age: number, sex: BiologicalSex = 'neutral'): string {
+  const group = getAgeGroupForAge(age);
+  if (sex === 'female') {
+    switch (group.id) {
+      case '18-25':
+        return 'Supports steady energy, iron-friendly whole foods, cycle resilience, and active recovery.';
+      case '26-35':
+        return 'Balances thyroid & reproductive minerals, calm cortisol, and consistent lean protein.';
+      case '36-45':
+        return 'Supports hormonal steadiness, bone-friendly magnesium, and lean muscle preservation.';
+      case '46-60':
+        return 'Boosts leucine-rich protein and magnesium to protect bone density, sleep, and perimenopause/menopause balance.';
+      case '60+':
+        return 'Prioritizes gentle, protein-rich meals for bone strength, mobility, and cardiovascular blood flow.';
+    }
+  }
+  return group.guidanceNote;
 }
 
 export function getWeightClassForWeight(weightKg: number): WeightClassPreset {
