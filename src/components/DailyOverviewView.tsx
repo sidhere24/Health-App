@@ -9,6 +9,7 @@ import {
   Droplets,
   ExternalLink,
   Minus,
+  MoreHorizontal,
   Plus,
   RotateCcw,
   ShieldAlert,
@@ -132,7 +133,7 @@ export function DailyOverviewView({
   const [expandedMeals, setExpandedMeals] = useState<Record<string, boolean>>({});
   const [difficultyFilter, setDifficultyFilter] = useState<MealDifficulty | 'all'>('all');
   const [showInsights, setShowInsights] = useState(true);
-  const [mobileScreen, setMobileScreen] = useState<'meals' | 'targets' | 'insights'>('meals');
+
 
   const region = REGIONS[profile.locationId] ?? REGIONS.hyderabad;
   const sex: BiologicalSex = profile.sex ?? 'male';
@@ -335,98 +336,78 @@ export function DailyOverviewView({
             })}
           </div>
 
-          {calGapRatio > 0.08 && (
-            <button
-              type="button"
-              onClick={onScaleWeekToTarget}
-              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap shrink-0"
+          <details className="relative shrink-0">
+            <summary className="list-none [&::-webkit-details-marker]:hidden inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] min-w-[44px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer select-none whitespace-nowrap">
+              <MoreHorizontal className="w-4 h-4" />
+              <span className="sr-only">More plan actions</span>
+            </summary>
+            <div
+              role="menu"
+              aria-label="More plan actions"
+              className="absolute right-0 z-30 mt-1 w-64 p-1.5 bg-white border border-slate-200 rounded-xl shadow-lg"
             >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>Scale Portions to {targets.calories} kcal</span>
-            </button>
-          )}
-
-          {onOpenAiPlanner && (
-            <button
-              type="button"
-              onClick={onOpenAiPlanner}
-              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap shrink-0"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Local Plan</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => onMarkAllDayConsumed(selectedDay, consumedCount < 4)}
-            className="px-3.5 py-2 min-h-[40px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
-          >
-            {consumedCount === 4 ? 'Uncheck All' : 'Mark All Eaten'}
-          </button>
-
-          <button
-            type="button"
-            onClick={onResetDefaults}
-            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Plan</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Screen-by-Screen Switcher (Replaces Long Vertical Scroll on Phones) */}
-      <div className="lg:hidden space-y-2.5">
-        <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs font-mono tabular-nums text-slate-700">
-          <span>
-            <strong className="text-slate-900">{eaten.calories}</strong>/{planned.calories} kcal
-          </span>
-          <span className="text-slate-300" aria-hidden="true">·</span>
-          <span>
-            <strong className="text-slate-900">{eaten.proteinG}g</strong> P
-          </span>
-          <span className="text-slate-300" aria-hidden="true">·</span>
-          <span className="text-sky-700 font-semibold">
-            {hydrationGlasses}/{hydrationTarget} water
-          </span>
-        </div>
-
-        <div
-          role="tablist"
-          aria-label="Daily screen sections"
-          className="grid grid-cols-3 p-1 bg-slate-200/70 rounded-xl gap-1"
-        >
-          {[
-            { id: 'meals' as const, label: `Meals (${consumedCount}/4)` },
-            { id: 'targets' as const, label: 'Targets' },
-            { id: 'insights' as const, label: 'Insights' },
-          ].map((tab) => {
-            const active = mobileScreen === tab.id;
-            return (
+              {onOpenAiPlanner && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={(e) => {
+                    (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open');
+                    onOpenAiPlanner();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 min-h-[44px] text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-teal-700" />
+                  AI Local Plan
+                </button>
+              )}
+              {calGapRatio > 0.08 && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={(e) => {
+                    (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open');
+                    onScaleWeekToTarget();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 min-h-[44px] text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-teal-700" />
+                  Scale portions to {targets.calories} kcal
+                </button>
+              )}
               <button
-                key={tab.id}
                 type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setMobileScreen(tab.id)}
-                className={`py-2 px-2 min-h-[42px] text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                  active
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                role="menuitem"
+                onClick={(e) => {
+                  (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open');
+                  onMarkAllDayConsumed(selectedDay, consumedCount < 4);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2.5 min-h-[44px] text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left"
               >
-                {tab.label}
+                <Check className="w-3.5 h-3.5 text-teal-700" />
+                {consumedCount === 4 ? 'Uncheck all meals' : 'Mark all meals eaten'}
               </button>
-            );
-          })}
+              <div className="my-1 border-t border-slate-100" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={(e) => {
+                  (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open');
+                  onResetDefaults();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2.5 min-h-[44px] text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg text-left"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset plan
+              </button>
+            </div>
+          </details>
         </div>
       </div>
 
       {/* Immediate 1-Tap Next Meal Focus Strip (Fitts's Law Primary Action) */}
       <section
         aria-label="Next Meal Action and Weekly Progress"
-        className={`${mobileScreen === 'meals' ? 'flex' : 'hidden lg:flex'} bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex-col sm:flex-row sm:items-center justify-between gap-4`}
+        className="flex bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm">
@@ -445,6 +426,15 @@ export function DailyOverviewView({
           </div>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
             {consistency.headline}
+          </p>
+          <p className="font-mono tabular-nums text-xs sm:text-sm text-slate-700 pt-0.5">
+            <strong className="text-slate-900">{eaten.calories}</strong>/{planned.calories} kcal
+            <span className="text-slate-300" aria-hidden="true"> · </span>
+            <strong className="text-slate-900">{eaten.proteinG}g</strong> P
+            <span className="text-slate-300" aria-hidden="true"> · </span>
+            <span className="text-sky-700 font-semibold">
+              {hydrationGlasses}/{hydrationTarget} water
+            </span>
           </p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5">
             {nudgeSlot && nudgeSlot.id !== nextSlot?.slot && (
@@ -489,227 +479,10 @@ export function DailyOverviewView({
         </div>
       </section>
 
-      {/* Primary 4-Column Summary Strip */}
-      <section
-        aria-label="Daily Nutrition and Budget Summary"
-        className={`${mobileScreen === 'targets' ? 'grid' : 'hidden lg:grid'} grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4`}
-      >
-        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-600 font-medium">Daily Calories</span>
-            <span className="font-mono tabular-nums text-slate-600">{consumedCount}/4 meals</span>
-          </div>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
-              {eaten.calories}
-            </span>
-            <span className="font-mono tabular-nums text-xs text-slate-500">
-              / {planned.calories} plan · {targets.calories} goal
-            </span>
-          </div>
-          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 bg-slate-300 rounded-full"
-              style={{ width: `${plannedCalPct}%` }}
-            />
-            <div
-              className="absolute inset-y-0 left-0 bg-teal-700 rounded-full transition-all duration-200"
-              style={{ width: `${calPct}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-600 font-medium">Protein & Carbs</span>
-            <span className="font-mono tabular-nums text-teal-700 font-semibold">
-              {Math.round((planned.proteinG / targets.proteinG) * 100)}% protein
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-0.5">
-            <div>
-              <span className="block text-xs text-slate-500">Protein</span>
-              <span className="font-mono tabular-nums text-lg font-semibold text-slate-900">
-                {eaten.proteinG}g
-              </span>
-              <span className="font-mono tabular-nums text-xs text-slate-500">
-                {' '}
-                / {planned.proteinG}g
-              </span>
-            </div>
-            <div>
-              <span className="block text-xs text-slate-500">Carbs</span>
-              <span className="font-mono tabular-nums text-lg font-semibold text-slate-900">
-                {eaten.carbsG}g
-              </span>
-              <span className="font-mono tabular-nums text-xs text-slate-500">
-                {' '}
-                / {planned.carbsG}g
-              </span>
-            </div>
-          </div>
-          <p className="text-xs text-slate-500 font-mono tabular-nums">
-            Goal: {targets.proteinG}g P · {targets.carbsG}g C · {planned.fiberG}g fiber
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-600 font-medium">Essential Healthy Fats</span>
-            <span className={`font-semibold ${fatFloorMet ? 'text-teal-700' : 'text-amber-700'}`}>
-              {fatFloorMet ? 'Healthy Floor Met' : 'Below 0.9g/kg'}
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
-              {eaten.fatG}g
-            </span>
-            <span className="font-mono tabular-nums text-xs text-slate-500">
-              / {planned.fatG}g plan · {targets.fatG}g goal
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 font-mono tabular-nums">
-            Daily minimum: {fatFloorGrams}g (eggs, ghee, seeds, fish)
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <div className="flex items-center justify-between text-xs gap-2">
-            <span className="text-slate-600 font-medium truncate">
-              {activeAiLocation ? `${activeAiLocation} Food Cost` : `${region.shortLabel} Food Cost`}
-            </span>
-            <span className={`font-semibold shrink-0 ${budgetMet ? 'text-teal-700' : 'text-red-700'}`}>
-              {budgetMet ? 'Within Budget' : 'Over Budget'}
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
-              {formatCurrency(planned.costInr, profile.locationId)}
-            </span>
-            <span className="font-mono tabular-nums text-xs text-slate-500">
-              / {formatCurrency(targets.dailyBudgetInr, profile.locationId)} cap ·{' '}
-              {formatCurrency(eaten.costInr, profile.locationId)} eaten
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 font-mono tabular-nums">
-            {planned.proteinG > 0
-              ? `${formatCurrency((planned.costInr / planned.proteinG) * 100, profile.locationId)} per 100g protein`
-              : '—'}
-          </p>
-        </div>
-      </section>
-
-      {/* Integrated Daily Hydration Strip */}
-      {onAdjustHydration && (
-        <section
-          aria-label="Daily Hydration Tracker"
-          className={`${mobileScreen === 'targets' ? 'flex' : 'hidden lg:flex'} bg-white border border-slate-200/90 rounded-xl px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex-col sm:flex-row sm:items-center justify-between gap-4`}
-        >
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
-              <div className="flex items-center gap-2">
-                <Droplets className="w-4 h-4 text-sky-600 shrink-0" />
-                <span className="font-semibold text-slate-900">{selectedDay} Hydration</span>
-                <span className="text-slate-300" aria-hidden="true">
-                  ·
-                </span>
-                <span className="font-mono tabular-nums text-slate-700 font-medium">
-                  {hydrationGlasses} / {hydrationTarget} glasses ({hydrationLiters}L / {hydrationTargetLiters}L)
-                </span>
-              </div>
-              <span
-                className={`text-xs font-semibold whitespace-nowrap ${
-                  hydrationGlasses >= hydrationTarget ? 'text-teal-700' : 'text-slate-500'
-                }`}
-              >
-                {hydrationGlasses >= hydrationTarget ? 'Goal Met' : `${hydrationPct}%`}
-              </span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-sky-600 rounded-full transition-all duration-200"
-                style={{ width: `${hydrationPct}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => onAdjustHydration(-1)}
-              disabled={hydrationGlasses <= 0}
-              aria-label={`Remove 1 glass of water for ${selectedDay}`}
-              className="w-11 h-11 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 flex items-center justify-center transition-colors"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onAdjustHydration(1)}
-              aria-label={`Add 1 glass of water for ${selectedDay}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] text-xs font-medium text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition-colors whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4 text-sky-700" />
-              <span>+1 Glass (250ml)</span>
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* Allergen Guardrail Notice (only appears if active schedule conflicts with user exclusions) */}
-      {allergenConflictCount > 0 && onAdaptWeekAllergens && (
-        <section
-          role="region"
-          aria-label="Allergen Guardrail Alert"
-          className="bg-amber-50/80 border border-amber-200 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-        >
-          <div className="flex items-start gap-2.5 min-w-0">
-            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-amber-950">
-              <span className="font-semibold">
-                {allergenConflictCount} scheduled meal{allergenConflictCount === 1 ? '' : 's'} contain excluded allergens (
-                {excludedAllergens.map((id) => allergenLabelsById[id] ?? id).join(', ')}).
-              </span>{' '}
-              <span className="text-amber-900">
-                Swap them automatically to keep your week allergen-safe.
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onAdaptWeekAllergens}
-            className="px-4 py-2.5 min-h-[42px] text-xs font-medium text-white bg-amber-700 hover:bg-amber-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
-          >
-            Adapt Week to Allergen-Safe
-          </button>
-        </section>
-      )}
-
-      {/* Mobile Jump Bar on Targets Screen */}
-      {mobileScreen === 'targets' && (
-        <div className="lg:hidden flex items-center justify-between gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => setMobileScreen('meals')}
-            className="px-3.5 py-2.5 min-h-[44px] text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-xl"
-          >
-            Back to Meals
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileScreen('insights')}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-xl whitespace-nowrap"
-          >
-            <span>Next: Insights & Minerals</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
       {/* Daily Meal Prep Schedule — Elevated Above Deep Analytics (Meal-First Hierarchy) */}
       <section
         aria-label={`${selectedDay} Meal Schedule`}
-        className={`${mobileScreen === 'meals' ? 'block' : 'hidden lg:block'} space-y-3`}
+        className="block space-y-3"
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -884,25 +657,40 @@ export function DailyOverviewView({
                       <div
                         role="group"
                         aria-label={`Portion multiplier for ${slotMeta.label}`}
-                        className="inline-flex items-center p-0.5 bg-slate-100 border border-slate-200 rounded-lg"
+                        className="inline-flex items-center gap-0.5 p-0.5 bg-slate-100 border border-slate-200 rounded-lg"
                       >
-                        {Array.from(new Set([...PORTION_OPTIONS, mult]))
-                          .sort((a, b) => a - b)
-                          .map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => onChangeMultiplier(selectedDay, slotMeta.id, option)}
-                              aria-pressed={mult === option}
-                              className={`px-2.5 py-1.5 min-h-[38px] text-xs font-mono tabular-nums rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                                mult === option
-                                  ? 'bg-white text-slate-900 font-semibold shadow-xs'
-                                  : 'text-slate-600 hover:text-slate-900'
-                              }`}
-                            >
-                              {option}×
-                            </button>
-                          ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const i = PORTION_OPTIONS.indexOf(mult);
+                            const prev = PORTION_OPTIONS[Math.max(0, (i === -1 ? 1 : i) - 1)];
+                            if (prev !== mult) onChangeMultiplier(selectedDay, slotMeta.id, prev);
+                          }}
+                          disabled={(PORTION_OPTIONS.indexOf(mult) === 0 && mult === PORTION_OPTIONS[0]) || mult <= PORTION_OPTIONS[0]}
+                          aria-label={`Decrease portion of ${slotMeta.label}`}
+                          className="inline-flex items-center justify-center w-8 min-h-[38px] rounded-md text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span
+                          className="min-w-[42px] text-center text-xs font-mono tabular-nums font-semibold text-slate-900"
+                          aria-live="polite"
+                        >
+                          {mult}×
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const i = PORTION_OPTIONS.indexOf(mult);
+                            const next = PORTION_OPTIONS[Math.min(PORTION_OPTIONS.length - 1, (i === -1 ? 1 : i) + 1)];
+                            if (next !== mult) onChangeMultiplier(selectedDay, slotMeta.id, next);
+                          }}
+                          disabled={mult >= PORTION_OPTIONS[PORTION_OPTIONS.length - 1]}
+                          aria-label={`Increase portion of ${slotMeta.label}`}
+                          className="inline-flex items-center justify-center w-8 min-h-[38px] rounded-md text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
                       </div>
 
                       {onOpenCookMode && (
@@ -1011,33 +799,208 @@ export function DailyOverviewView({
             })
           )}
         </div>
+      </section>
 
-        {/* Mobile jump bar from Meals to Targets */}
-        <div className="lg:hidden pt-1 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => setMobileScreen('targets')}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-xl transition-colors whitespace-nowrap"
-          >
-            <span>Next: Targets & Hydration</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          {onJumpToNextWeek && (
-            <button
-              type="button"
-              onClick={onJumpToNextWeek}
-              className="px-3.5 py-2.5 min-h-[44px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-xl transition-colors whitespace-nowrap shrink-0"
-            >
-              Next Week
-            </button>
-          )}
+      {/* Primary 4-Column Summary Strip */}
+      <section
+        aria-label="Daily Nutrition and Budget Summary"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+      >
+        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-600 font-medium">Daily Calories</span>
+            <span className="font-mono tabular-nums text-slate-600">{consumedCount}/4 meals</span>
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
+              {eaten.calories}
+            </span>
+            <span className="font-mono tabular-nums text-xs text-slate-500">
+              / {planned.calories} plan · {targets.calories} goal
+            </span>
+          </div>
+          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 bg-slate-300 rounded-full"
+              style={{ width: `${plannedCalPct}%` }}
+            />
+            <div
+              className="absolute inset-y-0 left-0 bg-teal-700 rounded-full transition-all duration-200"
+              style={{ width: `${calPct}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-600 font-medium">Protein & Carbs</span>
+            <span className="font-mono tabular-nums text-teal-700 font-semibold">
+              {Math.round((planned.proteinG / targets.proteinG) * 100)}% protein
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 pt-0.5">
+            <div>
+              <span className="block text-xs text-slate-500">Protein</span>
+              <span className="font-mono tabular-nums text-lg font-semibold text-slate-900">
+                {eaten.proteinG}g
+              </span>
+              <span className="font-mono tabular-nums text-xs text-slate-500">
+                {' '}
+                / {planned.proteinG}g
+              </span>
+            </div>
+            <div>
+              <span className="block text-xs text-slate-500">Carbs</span>
+              <span className="font-mono tabular-nums text-lg font-semibold text-slate-900">
+                {eaten.carbsG}g
+              </span>
+              <span className="font-mono tabular-nums text-xs text-slate-500">
+                {' '}
+                / {planned.carbsG}g
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 font-mono tabular-nums">
+            Goal: {targets.proteinG}g P · {targets.carbsG}g C · {planned.fiberG}g fiber
+          </p>
+        </div>
+
+        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-600 font-medium">Essential Healthy Fats</span>
+            <span className={`font-semibold ${fatFloorMet ? 'text-teal-700' : 'text-amber-700'}`}>
+              {fatFloorMet ? 'Healthy Floor Met' : 'Below 0.9g/kg'}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
+              {eaten.fatG}g
+            </span>
+            <span className="font-mono tabular-nums text-xs text-slate-500">
+              / {planned.fatG}g plan · {targets.fatG}g goal
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-mono tabular-nums">
+            Daily minimum: {fatFloorGrams}g (eggs, ghee, seeds, fish)
+          </p>
+        </div>
+
+        <div className="bg-white border border-slate-200/90 rounded-xl p-5 space-y-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center justify-between text-xs gap-2">
+            <span className="text-slate-600 font-medium truncate">
+              {activeAiLocation ? `${activeAiLocation} Food Cost` : `${region.shortLabel} Food Cost`}
+            </span>
+            <span className={`font-semibold shrink-0 ${budgetMet ? 'text-teal-700' : 'text-red-700'}`}>
+              {budgetMet ? 'Within Budget' : 'Over Budget'}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
+              {formatCurrency(planned.costInr, profile.locationId)}
+            </span>
+            <span className="font-mono tabular-nums text-xs text-slate-500">
+              / {formatCurrency(targets.dailyBudgetInr, profile.locationId)} cap ·{' '}
+              {formatCurrency(eaten.costInr, profile.locationId)} eaten
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-mono tabular-nums">
+            {planned.proteinG > 0
+              ? `${formatCurrency((planned.costInr / planned.proteinG) * 100, profile.locationId)} per 100g protein`
+              : '—'}
+          </p>
         </div>
       </section>
+
+      {/* Integrated Daily Hydration Strip */}
+      {onAdjustHydration && (
+        <section
+          aria-label="Daily Hydration Tracker"
+          className="flex bg-white border border-slate-200/90 rounded-xl px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+              <div className="flex items-center gap-2">
+                <Droplets className="w-4 h-4 text-sky-600 shrink-0" />
+                <span className="font-semibold text-slate-900">{selectedDay} Hydration</span>
+                <span className="text-slate-300" aria-hidden="true">
+                  ·
+                </span>
+                <span className="font-mono tabular-nums text-slate-700 font-medium">
+                  {hydrationGlasses} / {hydrationTarget} glasses ({hydrationLiters}L / {hydrationTargetLiters}L)
+                </span>
+              </div>
+              <span
+                className={`text-xs font-semibold whitespace-nowrap ${
+                  hydrationGlasses >= hydrationTarget ? 'text-teal-700' : 'text-slate-500'
+                }`}
+              >
+                {hydrationGlasses >= hydrationTarget ? 'Goal Met' : `${hydrationPct}%`}
+              </span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-sky-600 rounded-full transition-all duration-200"
+                style={{ width: `${hydrationPct}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => onAdjustHydration(-1)}
+              disabled={hydrationGlasses <= 0}
+              aria-label={`Remove 1 glass of water for ${selectedDay}`}
+              className="w-11 h-11 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 flex items-center justify-center transition-colors"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onAdjustHydration(1)}
+              aria-label={`Add 1 glass of water for ${selectedDay}`}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] text-xs font-medium text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 text-sky-700" />
+              <span>+1 Glass (250ml)</span>
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Allergen Guardrail Notice (only appears if active schedule conflicts with user exclusions) */}
+      {allergenConflictCount > 0 && onAdaptWeekAllergens && (
+        <section
+          role="region"
+          aria-label="Allergen Guardrail Alert"
+          className="bg-amber-50/80 border border-amber-200 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div className="flex items-start gap-2.5 min-w-0">
+            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="text-xs sm:text-sm text-amber-950">
+              <span className="font-semibold">
+                {allergenConflictCount} scheduled meal{allergenConflictCount === 1 ? '' : 's'} contain excluded allergens (
+                {excludedAllergens.map((id) => allergenLabelsById[id] ?? id).join(', ')}).
+              </span>{' '}
+              <span className="text-amber-900">
+                Swap them automatically to keep your week allergen-safe.
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onAdaptWeekAllergens}
+            className="px-4 py-2.5 min-h-[42px] text-xs font-medium text-white bg-amber-700 hover:bg-amber-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
+          >
+            Adapt Week to Allergen-Safe
+          </button>
+        </section>
+      )}
 
       {/* Progressive Disclosure: Nutrition Insights & Weekly Trends */}
       <section
         aria-label="Nutrition Insights and Weekly Progress"
-        className={`${mobileScreen === 'insights' ? 'block' : 'hidden lg:block'} space-y-4 pt-2`}
+        className="block space-y-4 pt-2"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -1063,7 +1026,7 @@ export function DailyOverviewView({
           </button>
         </div>
 
-        {(showInsights || mobileScreen === 'insights') && (
+        {showInsights && (
           <div className="space-y-5">
             {/* Essential Minerals & Vitality Panel */}
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
@@ -1154,13 +1117,6 @@ export function DailyOverviewView({
 
         {onJumpToNextWeek && (
           <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setMobileScreen('targets')}
-              className="lg:hidden px-3.5 py-2.5 min-h-[44px] text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-xl"
-            >
-              Back to Targets
-            </button>
             <button
               type="button"
               onClick={onJumpToNextWeek}
