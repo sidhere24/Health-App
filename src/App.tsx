@@ -974,8 +974,14 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  const hasStoredData =
-    typeof window !== 'undefined' && !!window.localStorage.getItem(STORAGE_KEY);
+  const hasStoredData = (() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return !!window.localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return false;
+    }
+  })();
 
   return (
     <div id="top" className="min-h-screen flex bg-[#f6f8f7] text-slate-900">
@@ -983,7 +989,7 @@ export default function App() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 mx-4 sm:mx-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
           <div className="text-sm sm:text-base text-amber-800">
-            <strong className="font-semibold">Your data stays on this device.</strong>
+            <strong className="font-semibold">Your data stays on this device.</strong>{' '}
             HydraPrep saves meals, logs, and grocery lists in your browser — not on a server. If you clear
             browser data or switch devices, your progress will be lost. Use "Export Prep CSV" to back up your
             grocery list.
