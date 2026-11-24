@@ -509,7 +509,7 @@ export function DailyOverviewView({
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setDifficultyFilter(level)}
-                    className={`px-3 py-1.5 min-h-[38px] text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                    className={`px-3 py-2 min-h-[44px] text-sm font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                       isSelected
                         ? 'bg-white text-slate-900 shadow-xs border border-slate-200/70'
                         : 'text-slate-600 hover:text-slate-900'
@@ -527,7 +527,7 @@ export function DailyOverviewView({
                 <button
                   type="button"
                   onClick={() => onAdaptWeekDifficulty(difficultyFilter)}
-                  className="px-3.5 py-2 min-h-[38px] text-xs font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap shrink-0"
+                  className="px-3.5 py-2 min-h-[44px] text-sm font-medium text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-lg transition-colors whitespace-nowrap shrink-0"
                 >
                   {difficultyFilter === 'Easy'
                     ? 'Adapt Week to Easy'
@@ -605,7 +605,7 @@ export function DailyOverviewView({
                       </button>
 
                       <div className="min-w-0 space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm sm:text-base text-slate-600">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-base text-slate-600">
                           <span className="font-semibold text-slate-800">{slotMeta.label}</span>
                           <span aria-hidden="true">·</span>
                           <span className="font-mono tabular-nums">{slotMeta.timeWindow}</span>
@@ -637,7 +637,7 @@ export function DailyOverviewView({
                           {meal.hormonalBenefit}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm sm:text-base font-mono tabular-nums text-slate-700">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-base font-mono tabular-nums text-slate-700">
                           <span className="font-semibold text-slate-900">{stats.calories} kcal</span>
                           <span>{stats.proteinG}g P</span>
                           <span>{stats.carbsG}g C</span>
@@ -668,12 +668,12 @@ export function DailyOverviewView({
                           }}
                           disabled={(PORTION_OPTIONS.indexOf(mult) === 0 && mult === PORTION_OPTIONS[0]) || mult <= PORTION_OPTIONS[0]}
                           aria-label={`Decrease portion of ${slotMeta.label}`}
-                          className="inline-flex items-center justify-center w-8 min-h-[38px] rounded-md text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                          className="inline-flex items-center justify-center w-10 min-h-[44px] rounded-md text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-4 h-4" />
                         </button>
                         <span
-                          className="min-w-[42px] text-center text-xs font-mono tabular-nums font-semibold text-slate-900"
+                          className="min-w-[42px] text-center text-sm font-mono tabular-nums font-semibold text-slate-900"
                           aria-live="polite"
                         >
                           {mult}×
@@ -687,9 +687,9 @@ export function DailyOverviewView({
                           }}
                           disabled={mult >= PORTION_OPTIONS[PORTION_OPTIONS.length - 1]}
                           aria-label={`Increase portion of ${slotMeta.label}`}
-                          className="inline-flex items-center justify-center w-8 min-h-[38px] rounded-md text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                          className="inline-flex items-center justify-center w-10 min-h-[44px] rounded-md text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-4 h-4" />
                         </button>
                       </div>
 
@@ -815,7 +815,7 @@ export function DailyOverviewView({
             <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
               {eaten.calories}
             </span>
-            <span className="font-mono tabular-nums text-xs text-slate-500">
+            <span className="font-mono tabular-nums text-sm text-slate-500">
               / {planned.calories} plan · {targets.calories} goal
             </span>
           </div>
@@ -844,7 +844,7 @@ export function DailyOverviewView({
               <span className="font-mono tabular-nums text-lg font-semibold text-slate-900">
                 {eaten.proteinG}g
               </span>
-              <span className="font-mono tabular-nums text-xs text-slate-500">
+              <span className="font-mono tabular-nums text-sm text-slate-500">
                 {' '}
                 / {planned.proteinG}g
               </span>
@@ -854,13 +854,13 @@ export function DailyOverviewView({
               <span className="font-mono tabular-nums text-lg font-semibold text-slate-900">
                 {eaten.carbsG}g
               </span>
-              <span className="font-mono tabular-nums text-xs text-slate-500">
+              <span className="font-mono tabular-nums text-sm text-slate-500">
                 {' '}
                 / {planned.carbsG}g
               </span>
             </div>
           </div>
-          <p className="text-xs text-slate-500 font-mono tabular-nums">
+          <p className="text-sm text-slate-500 font-mono tabular-nums">
             Goal: {targets.proteinG}g P · {targets.carbsG}g C · {planned.fiberG}g fiber
           </p>
         </div>
@@ -876,11 +876,11 @@ export function DailyOverviewView({
             <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
               {eaten.fatG}g
             </span>
-            <span className="font-mono tabular-nums text-xs text-slate-500">
+            <span className="font-mono tabular-nums text-sm text-slate-500">
               / {planned.fatG}g plan · {targets.fatG}g goal
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-mono tabular-nums">
+          <p className="text-sm text-slate-500 font-mono tabular-nums">
             Daily minimum: {fatFloorGrams}g (eggs, ghee, seeds, fish)
           </p>
         </div>
@@ -898,12 +898,12 @@ export function DailyOverviewView({
             <span className="font-mono tabular-nums text-2xl font-semibold text-slate-900">
               {formatCurrency(planned.costInr, profile.locationId)}
             </span>
-            <span className="font-mono tabular-nums text-xs text-slate-500">
+            <span className="font-mono tabular-nums text-sm text-slate-500">
               / {formatCurrency(targets.dailyBudgetInr, profile.locationId)} cap ·{' '}
               {formatCurrency(eaten.costInr, profile.locationId)} eaten
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-mono tabular-nums">
+          <p className="text-sm text-slate-500 font-mono tabular-nums">
             {planned.proteinG > 0
               ? `${formatCurrency((planned.costInr / planned.proteinG) * 100, profile.locationId)} per 100g protein`
               : '—'}
@@ -918,7 +918,7 @@ export function DailyOverviewView({
           className="flex bg-white border border-slate-200/90 rounded-xl px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base">
               <div className="flex items-center gap-2">
                 <Droplets className="w-4 h-4 text-sky-600 shrink-0" />
                 <span className="font-semibold text-slate-900">{selectedDay} Hydration</span>
@@ -930,7 +930,7 @@ export function DailyOverviewView({
                 </span>
               </div>
               <span
-                className={`text-xs font-semibold whitespace-nowrap ${
+                className={`text-sm font-semibold whitespace-nowrap ${
                   hydrationGlasses >= hydrationTarget ? 'text-teal-700' : 'text-slate-500'
                 }`}
               >
@@ -1015,7 +1015,7 @@ export function DailyOverviewView({
             type="button"
             onClick={() => setShowInsights((prev) => !prev)}
             aria-expanded={showInsights}
-            className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
+            className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0"
           >
             <span>{showInsights ? 'Hide Insights' : 'Show Insights'}</span>
             {showInsights ? (
@@ -1063,7 +1063,7 @@ export function DailyOverviewView({
                           <span className="text-sm font-semibold text-slate-900">{item.label}</span>
                           <span className="block text-xs text-slate-600">{item.subtitle}</span>
                         </div>
-                        <span className={`text-xs font-semibold whitespace-nowrap ${statusColor}`}>
+                        <span className={`text-sm font-semibold whitespace-nowrap ${statusColor}`}>
                           {statusText}
                         </span>
                       </div>
