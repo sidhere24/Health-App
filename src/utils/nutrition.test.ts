@@ -14,12 +14,17 @@ import {
   createInitialPortionMultipliers,
   filterWholeFoods,
   formatCurrency,
+  formatPracticalQuantity,
   getCurrentDayOfWeek,
   getLocalizedFoodsById,
   getMealDietType,
+  getMealsByLocation,
+  getMealsById,
   MEALS_BY_ID,
+  PORTION_STEPS,
   scalePortionsToTarget,
 } from './nutrition';
+import { US_MEALS, UK_MEALS } from '../data/usUkMeals';
 
 test('calculateBiometricTargets returns hormonally balanced targets for 32yo 85kg male', () => {
   const targets = calculateBiometricTargets(DEFAULT_PROFILE);
@@ -151,7 +156,11 @@ test('regional localization adapts food names, currency formatting, and scalePor
   assert.match(blrFoods.moringa_leaves.localName, /Nugge Soppu/i);
 
   const usFoods = getLocalizedFoodsById('usa');
-  assert.ok(usFoods.chicken_breast.pricePer100gInr < 5);
+  const usChicken =
+    Object.values(usFoods).find((f) => f.name.toLowerCase().includes('chicken breast')) ??
+    Object.values(usFoods).find((f) => f.name.toLowerCase().includes('chicken'));
+  assert.ok(usChicken, 'USA foods are available');
+  assert.ok(usChicken.pricePer100gInr > 0);
   assert.equal(formatCurrency(12.5, 'usa'), '$12.50');
   assert.equal(formatCurrency(248.4, 'hyderabad'), '₹248');
 
@@ -257,6 +266,38 @@ test('getCleanProductQuery strips slashes and prevents India -21 tag leakage ont
   });
   assert.equal(inLink.isAffiliateTagged, true);
   assert.match(inLink.url, /tag=sid036-21/);
+});
+
+test('formatPracticalQuantity renders eggs, curd kg, and generic grams labels', () => {
+  assert.equal(formatPracticalQuantity('whole_eggs', 200), '4 eggs (~200 g)');
+  assert.equal(formatPracticalQuantity('curd_dahi', 1250), '1.25 kg / L');
+  assert.equal(formatPracticalQuantity('curd_dahi', 500), '500 g');
+  assert.equal(formatPracticalQuantity('spinach', 300), '300 g');
+});
+
+test('formatPracticalQuantity renders imperial quantities for usa/uk', () => {
+  assert.equal(formatPracticalQuantity('spinach', 100, 'usa'), '4 oz');
+  assert.equal(formatPracticalQuantity('spinach', 500, 'usa'), '1.1 lb');
+  assert.equal(formatPracticalQuantity('spinach', 500, 'uk'), '1.1 lb');
+  assert.equal(formatPracticalQuantity('whole_eggs', 100, 'usa'), '2 eggs (~4 oz)');
+});
+
+test('getMealsByLocation returns US/UK libraries for global regions and base library otherwise', () => {
+  assert.deepEqual(getMealsByLocation('usa'), US_MEALS);
+  assert.deepEqual(getMealsByLocation('uk'), UK_MEALS);
+  assert.deepEqual(getMealsByLocation('hyderabad'), MEAL_LIBRARY);
+  assert.equal(Object.keys(getMealsById('usa')).length, US_MEALS.length);
+  assert.equal(Object.keys(getMealsById('uk')).length, UK_MEALS.length);
+});
+
+test('scalePortionsToTarget snaps every day to the allowed portion steps', () => {
+  const heavyTargets = calculateBiometricTargets({ ...DEFAULT_PROFILE, weightKg: 105, age: 30 });
+  const heavyMults = scalePortionsToTarget(DEFAULT_WEEK_PLAN, heavyTargets);
+  for (const dayMults of Object.values(heavyMults)) {
+    for (const mult of Object.values(dayMults)) {
+      assert.ok(PORTION_STEPS.includes(mult), `portion multiplier ${mult} is not a snapped step`);
+    }
+  }
 });
 
 

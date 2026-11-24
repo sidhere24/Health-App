@@ -8,7 +8,7 @@ import { LegalComplianceModal } from './components/LegalComplianceModal';
 import { MealSwapModal } from './components/MealSwapModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { OnboardingBanner } from './components/OnboardingBanner';
+import { OnboardingWizard } from './components/OnboardingWizard';
 import { type ActiveTab, SidebarNav } from './components/SidebarNav';
 import { TopBar } from './components/TopBar';
 import { WeeklyPrepView } from './components/WeeklyPrepView';
@@ -19,7 +19,9 @@ import type {
   ConsumedState,
   DayOfWeek,
   DietPreference,
+  GoalMode,
   LocationId,
+  MealTemplate,
   MealSlot,
   PortionMultipliers,
   UserProfile,
@@ -27,6 +29,9 @@ import type {
   WeekPlan,
   WholeFood,
 } from './types/nutrition';
+import { findBestMealForFoods, type PhotoIdentifyResult } from './utils/aiPhoto';
+import type { VoiceAction } from './utils/aiVoice';
+import { getShareFromUrl } from './utils/sharing';
 import { computeConsistencyMetrics } from './utils/habits';
 import { buildIngredientPurchaseLink } from './utils/links';
 import {
@@ -38,7 +43,7 @@ import {
   getCurrentDayOfWeek,
   getLocalizedFoods,
   getLocalizedFoodsById,
-  MEALS_BY_ID,
+  getMealsById,
   scalePortionsToTarget,
 } from './utils/nutrition';
 
@@ -84,6 +89,15 @@ function loadInitialState(): PersistedState {
   if (typeof window === 'undefined') return defaults;
 
   try {
+    const shared = getShareFromUrl();
+    if (shared) {
+      return {
+        ...defaults,
+        weekPlan: shared.weekPlan,
+        multipliers: shared.multipliers,
+        consumed: shared.consumed ?? defaults.consumed,
+      };
+    }
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaults;
     const parsed = JSON.parse(raw) as Partial<PersistedState>;
@@ -123,6 +137,7 @@ function loadInitialState(): PersistedState {
 
 export default function App() {
   const [state, setState] = useState<PersistedState>(loadInitialState);
+  const [regionalFoods, setRegionalFoods] = useState<WholeFood[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [swapTarget, setSwapTarget] = useState<{ day: DayOfWeek; slot: MealSlot } | null>(null);
@@ -130,6 +145,7 @@ export default function App() {
   const [affiliateFocusFoodId, setAffiliateFocusFoodId] = useState<string | null>(null);
   const [customFoodModalOpen, setCustomFoodModalOpen] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [skipNote, setSkipNote] = useState('');
 
   useEffect(() => {
     try {
@@ -141,14 +157,39 @@ export default function App() {
 
   const targets = useMemo(() => calculateBiometricTargets(state.profile), [state.profile]);
 
+  // Fetch Spoonacular-generated foods for global regions when the server has a
+  // key; EMPTY stays as an explicit signal so callers can distinguish.
+  useEffect(() => {
+    const locationId = state.profile.locationId;
+    if (locationId !== 'usa' && locationId !== 'uk') {
+      setRegionalFoods([]);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/regional-foods/${locationId}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((foods: unknown) => {
+        if (!cancelled && Array.isArray(foods)) setRegionalFoods(foods);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [state.profile.locationId]);
+
   const localizedFoods = useMemo(
-    () => getLocalizedFoods(state.profile.locationId, state.customFoods),
-    [state.profile.locationId, state.customFoods]
+    () => getLocalizedFoods(state.profile.locationId, state.customFoods, regionalFoods),
+    [state.profile.locationId, state.customFoods, regionalFoods]
   );
 
   const localizedFoodsById = useMemo(
-    () => getLocalizedFoodsById(state.profile.locationId, state.customFoods),
-    [state.profile.locationId, state.customFoods]
+    () => getLocalizedFoodsById(state.profile.locationId, state.customFoods, regionalFoods),
+    [state.profile.locationId, state.customFoods, regionalFoods]
+  );
+
+  const mealsById = useMemo(
+    () => getMealsById(state.profile.locationId),
+    [state.profile.locationId]
   );
 
   const handleChangeLocation = (locationId: LocationId) => {
@@ -182,23 +223,83 @@ export default function App() {
     });
   };
 
+  const handleApplyAiPlan = (plan: WeekPlan) => {
+    setState((prev) => ({
+      ...prev,
+      weekPlan: plan,
+      multipliers: scalePortionsToTarget(plan, targets, localizedFoodsById),
+      consumed: createInitialConsumedState(),
+      batchDone: {},
+      onboardingComplete: true,
+    }));
+  };
+
+  const handleAddMealToPlan = (meal: MealTemplate, slot: MealSlot) => {
+    setState((prev) => ({
+      ...prev,
+      weekPlan: {
+        ...prev.weekPlan,
+        [state.selectedDay]: { ...prev.weekPlan[state.selectedDay], [slot]: meal.id },
+      },
+    }));
+  };
+
+  const handleVoiceLog = (action: VoiceAction) => {
+    if (action.action === 'none') return;
+    const meal = action.mealId ? mealsById[action.mealId] : null;
+    const slot = meal?.slot ?? action.slot;
+    if (!slot) return;
+    if (action.action === 'plan' && action.mealId) {
+      setState((prev) => ({
+        ...prev,
+        weekPlan: {
+          ...prev.weekPlan,
+          [state.selectedDay]: { ...prev.weekPlan[state.selectedDay], [slot]: action.mealId },
+        },
+      }));
+    } else {
+      setState((prev) => ({
+        ...prev,
+        consumed: {
+          ...prev.consumed,
+          [state.selectedDay]: { ...prev.consumed[state.selectedDay], [slot]: true },
+        },
+      }));
+    }
+  };
+
+  const handlePhotoLog = (foods: PhotoIdentifyResult) => {
+    if (!foods.foods.length) return;
+    const match = findBestMealForFoods(foods.foods, mealsById, localizedFoodsById);
+    if (!match) return;
+    setState((prev) => ({
+      ...prev,
+      consumed: {
+        ...prev.consumed,
+        [state.selectedDay]: { ...prev.consumed[state.selectedDay], [match.meal.slot]: true },
+      },
+    }));
+  };
+
   const handleApplyOnboarding = (next: {
     age: number;
     weightKg: number;
     locationId: LocationId;
     diet: DietPreference;
+    goal: GoalMode;
+    dailyBudgetInr: number;
   }) => {
-    const nextRegion = REGIONS[next.locationId] ?? REGIONS.hyderabad;
     const nextProfile: UserProfile = {
       ...state.profile,
       age: next.age,
       weightKg: next.weightKg,
       locationId: next.locationId,
       diet: next.diet,
-      dailyBudgetInr: nextRegion.defaultDailyBudget,
+      goal: next.goal,
+      dailyBudgetInr: next.dailyBudgetInr ?? REGIONS[next.locationId]?.defaultDailyBudget ?? state.profile.dailyBudgetInr,
     };
     const nextTargets = calculateBiometricTargets(nextProfile);
-    const nextFoodsById = getLocalizedFoodsById(next.locationId, state.customFoods);
+    const nextFoodsById = getLocalizedFoodsById(next.locationId, state.customFoods, []);
     const nextPlan =
       next.diet === 'non-veg'
         ? DEFAULT_WEEK_PLAN
@@ -213,7 +314,7 @@ export default function App() {
       onboardingComplete: true,
       affiliateConfig: {
         ...prev.affiliateConfig,
-        storePlatform: nextRegion.defaultStorePlatform,
+        storePlatform: REGIONS[next.locationId]?.defaultStorePlatform ?? 'amazon_in',
         affiliateTag: DEFAULT_AMAZON_PARTNER_TAG,
       },
     }));
@@ -393,8 +494,9 @@ export default function App() {
     const grocery = aggregateWeeklyGrocery(
       state.weekPlan,
       state.multipliers,
-      MEALS_BY_ID,
-      localizedFoodsById
+      mealsById,
+      localizedFoodsById,
+      state.profile.locationId
     );
     const header = [
       'Ingredient',
@@ -433,7 +535,14 @@ export default function App() {
   };
 
   return (
-    <div id="top" className="min-h-screen flex bg-slate-50 text-slate-900">
+    <>
+      <a
+        href="#top"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-60 focus:px-3 focus:py-2 focus:bg-teal-700 focus:text-white focus:rounded focus:text-sm"
+      >
+        Skip to main content
+      </a>
+      <div id="top" className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <SidebarNav
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -472,17 +581,34 @@ export default function App() {
               onMarkAllDayConsumed={handleMarkAllDayConsumed}
               onScaleWeekToTarget={handleScaleWeekToTarget}
               onResetDefaults={handleResetDefaults}
+              onApplyAiPlan={handleApplyAiPlan}
+              onVoiceLog={handleVoiceLog}
+              onPhotoLog={handlePhotoLog}
               weekHistory={state.weekHistory}
               onStartNewWeek={handleStartNewWeek}
+              onGoToFoods={() => setActiveTab('foods')}
               onboardingSlot={
                 !state.onboardingComplete ? (
-                  <OnboardingBanner
+                  <OnboardingWizard
                     profile={state.profile}
                     onApplyOnboarding={handleApplyOnboarding}
-                    onDismiss={() =>
-                      setState((prev) => ({ ...prev, onboardingComplete: true }))
-                    }
+                    onSkip={() => {
+                      setState((prev) => ({ ...prev, onboardingComplete: true }));
+                      const symbol = REGIONS[state.profile.locationId]?.currencySymbol ?? '₹';
+                      setSkipNote(
+                        `Using default targets (${symbol}${state.profile.dailyBudgetInr}/day) — customize anytime in your Profile.`
+                      );
+                      setTimeout(() => setSkipNote(''), 5000);
+                    }}
                   />
+                ) : skipNote ? (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="mb-4 rounded-xl border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/40 px-4 sm:px-5 py-3 text-xs text-teal-800 dark:text-teal-100"
+                  >
+                    {skipNote}
+                  </div>
                 ) : undefined
               }
             />
@@ -529,6 +655,7 @@ export default function App() {
               onOpenAddFoodModal={() => setCustomFoodModalOpen(true)}
               onOpenAffiliateModal={handleOpenAffiliateModal}
               onDeleteCustomFood={handleDeleteCustomFood}
+            onAddMealToPlan={handleAddMealToPlan}
             />
           )}
         </main>
@@ -588,6 +715,7 @@ export default function App() {
       />
 
       <OfflineIndicator />
-    </div>
+      </div>
+    </>
   );
 }

@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useTheme } from '../hooks/useTheme';
 import type {
   ConsumedState,
   DayMealSelection,
@@ -92,6 +93,12 @@ export function WeeklyMacroTrendChart({
 }: WeeklyMacroTrendChartProps) {
   const [sourceMode, setSourceMode] = useState<TrendSourceMode>('planned');
   const [unitMode, setUnitMode] = useState<TrendUnitMode>('percent');
+  const { resolved: isDark } = useTheme();
+  const gridColor = isDark ? '#334155' : '#E2E8F0';
+  const xTickFill = isDark ? '#94A3B8' : '#475569';
+  const xAxisStroke = isDark ? '#334155' : '#CBD5E1';
+  const refXStroke = isDark ? '#475569' : '#94A3B8';
+  const refXLabelFill = isDark ? '#64748B' : '#475569';
 
   const data = useMemo(
     () =>
@@ -234,11 +241,11 @@ export function WeeklyMacroTrendChart({
       <div className="h-[270px] w-full min-w-0" data-testid="weekly-macro-trend-chart">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="day"
-              tick={{ fontSize: 12, fill: '#475569' }}
-              axisLine={{ stroke: '#CBD5E1' }}
+              tick={{ fontSize: 12, fill: xTickFill }}
+              axisLine={{ stroke: xAxisStroke }}
               tickLine={false}
             />
             <YAxis
@@ -255,12 +262,12 @@ export function WeeklyMacroTrendChart({
 
             <ReferenceLine
               x={selectedDay}
-              stroke="#94A3B8"
+              stroke={refXStroke}
               strokeDasharray="2 3"
               label={{
                 value: selectedDay,
                 position: 'top',
-                fill: '#475569',
+                fill: refXLabelFill,
                 fontSize: 10,
               }}
             />

@@ -47,6 +47,8 @@ export interface RegionConfig {
   priceMultiplierFromInr: number;
   defaultStorePlatform: StorePlatform;
   marketChannelLabels: Record<MarketChannel, string>;
+  /** Metric regions show grams/kg; imperial regions show oz/lb (US, UK). */
+  weightSystem: 'metric' | 'imperial';
   foodOverrides: Record<string, RegionFoodOverride>;
   localNote: string;
 }
@@ -159,6 +161,7 @@ export const REGIONS: Record<LocationId, RegionConfig> = {
       'Local Poultry, Fish & Butcher': 'Local Poultry, Fish & Butcher',
       'Dairy & Eggs': 'Dairy & Eggs',
     },
+    weightSystem: 'metric',
     foodOverrides: {},
     localNote: 'Erragadda / Mehdipatnam Rythu Bazaars, Begum Bazaar wholesale & local Telangana markets.',
   },
@@ -180,6 +183,7 @@ export const REGIONS: Record<LocationId, RegionConfig> = {
       'Local Poultry, Fish & Butcher': 'Russel Market / Local Meat & Fish',
       'Dairy & Eggs': 'Nandini Dairy & Eggs',
     },
+    weightSystem: 'metric',
     foodOverrides: {
       moringa_leaves: {
         localName: 'Nugge Soppu (Drumstick Leaves)',
@@ -220,6 +224,7 @@ export const REGIONS: Record<LocationId, RegionConfig> = {
       'Local Poultry, Fish & Butcher': 'Sassoon Dock / Coastal Fish & Poultry',
       'Dairy & Eggs': 'Gokul / Amul Dairy & Eggs',
     },
+    weightSystem: 'metric',
     foodOverrides: {
       ragi_jowar: {
         localName: 'Nachni / Jowar Bhakri Flour',
@@ -255,6 +260,7 @@ export const REGIONS: Record<LocationId, RegionConfig> = {
       'Local Poultry, Fish & Butcher': 'INA / Ghazipur Poultry & Fish',
       'Dairy & Eggs': 'Mother Dairy / Amul & Eggs',
     },
+    weightSystem: 'metric',
     foodOverrides: {
       ragi_jowar: {
         localName: 'Bajra / Jowar Atta',
@@ -290,6 +296,7 @@ export const REGIONS: Record<LocationId, RegionConfig> = {
       'Local Poultry, Fish & Butcher': 'Butcher & Seafood Counter',
       'Dairy & Eggs': 'Dairy, Yogurt & Eggs',
     },
+    weightSystem: 'imperial',
     foodOverrides: {
       whole_eggs: {
         localName: 'Pasture / Cage-Free Whole Eggs',
@@ -377,6 +384,7 @@ export const REGIONS: Record<LocationId, RegionConfig> = {
       'Local Poultry, Fish & Butcher': 'Local Butcher & Fishmonger',
       'Dairy & Eggs': 'Dairy, Kefir & Eggs',
     },
+    weightSystem: 'imperial',
     foodOverrides: {
       whole_eggs: {
         localName: 'Free-Range Whole Eggs',

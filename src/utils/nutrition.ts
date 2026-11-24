@@ -1,5 +1,7 @@
 import { DAYS_OF_WEEK, HYDERABAD_FOODS, MEAL_LIBRARY } from '../data/hyderabadMeals';
 import { getAgeGroupForAge, localizeWholeFood, REGIONS } from '../data/regions';
+import { REGIONAL_FOODS } from '../data/regionalFoods';
+import { UK_MEALS, US_MEALS } from '../data/usUkMeals';
 import type {
   ConsumedState,
   DayMealSelection,
@@ -26,19 +28,45 @@ export const MEALS_BY_ID: Record<string, MealTemplate> = Object.fromEntries(
   MEAL_LIBRARY.map((meal) => [meal.id, meal])
 );
 
+/**
+ * Meal library for a region: US/UK regions use the curated global meal set,
+ * other regions (Hyderabad and Indian cities) use the base MEAL_LIBRARY.
+ */
+export function getMealsByLocation(locationId: LocationId): MealTemplate[] {
+  if (locationId === 'usa') return US_MEALS;
+  if (locationId === 'uk') return UK_MEALS;
+  return MEAL_LIBRARY;
+}
+
+export function getMealsById(locationId: LocationId): Record<string, MealTemplate> {
+  return Object.fromEntries(getMealsByLocation(locationId).map((meal) => [meal.id, meal]));
+}
+
 export function getLocalizedFoods(
   locationId: LocationId,
-  customFoods: WholeFood[] = []
+  customFoods: WholeFood[] = [],
+  fetchedRegionalFoods: WholeFood[] = []
 ): WholeFood[] {
-  const baseLocalized = HYDERABAD_FOODS.map((food) => localizeWholeFood(food, locationId));
-  return [...customFoods, ...baseLocalized];
+  // Global regions (USA, UK, ...) use Spoonacular-generated foods fetched from
+  // /api/regional-foods/:regionId when available, then the committed REGIONAL_FOODS
+  // cache, then the Indian base catalog as the final fallback.
+  const base =
+    fetchedRegionalFoods.length > 0
+      ? fetchedRegionalFoods
+      : REGIONAL_FOODS[locationId]?.length
+        ? (REGIONAL_FOODS[locationId] as WholeFood[])
+        : HYDERABAD_FOODS;
+  return [...customFoods, ...base.map((food) => localizeWholeFood(food, locationId))];
 }
 
 export function getLocalizedFoodsById(
   locationId: LocationId,
-  customFoods: WholeFood[] = []
+  customFoods: WholeFood[] = [],
+  fetchedRegionalFoods: WholeFood[] = []
 ): Record<string, WholeFood> {
-  return Object.fromEntries(getLocalizedFoods(locationId, customFoods).map((f) => [f.id, f]));
+  return Object.fromEntries(
+    getLocalizedFoods(locationId, customFoods, fetchedRegionalFoods).map((f) => [f.id, f])
+  );
 }
 
 export function formatCurrency(amount: number, locationId: LocationId): string {
@@ -270,12 +298,14 @@ export function computeDayTotals(
   return { planned, consumed: consumedTotals, consumedCount };
 }
 
+/** Portion sizes the scaler can snap to: 0.6, 0.75, 0.9, 1, 1.15, 1.25, 1.4× */
+export const PORTION_STEPS = [0.6, 0.75, 0.9, 1, 1.15, 1.25, 1.4];
+
 export function scalePortionsToTarget(
   weekPlan: WeekPlan,
   targets: MacroTargets,
   foodsById: Record<string, WholeFood> = FOODS_BY_ID
 ): PortionMultipliers {
-  const allowedSteps = [0.6, 0.75, 0.9, 1, 1.15, 1.25, 1.4];
   const next = {} as PortionMultipliers;
 
   for (const day of DAYS_OF_WEEK) {
@@ -287,7 +317,7 @@ export function scalePortionsToTarget(
       foodsById
     );
     const ratio = baseTotals.planned.calories > 0 ? targets.calories / baseTotals.planned.calories : 1;
-    const snapped = allowedSteps.reduce((best, candidate) =>
+    const snapped = PORTION_STEPS.reduce((best, candidate) =>
       Math.abs(candidate - ratio) < Math.abs(best - ratio) ? candidate : best
     );
     next[day] = {
@@ -301,8 +331,21 @@ export function scalePortionsToTarget(
   return next;
 }
 
-export function formatPracticalQuantity(foodId: string, totalGrams: number): string {
+export function formatPracticalQuantity(
+  foodId: string,
+  totalGrams: number,
+  locationId: LocationId = 'hyderabad'
+): string {
   const roundedGrams = Math.round(totalGrams);
+  if (REGIONS[locationId]?.weightSystem === 'imperial') {
+    const oz = roundedGrams / 28.3495;
+    if (foodId === 'whole_eggs') {
+      const count = Math.max(1, Math.round(roundedGrams / 50));
+      return `${count} eggs (~${Math.round(oz)} oz)`;
+    }
+    if (oz >= 16) return `${(roundedGrams / 453.592).toFixed(1)} lb`;
+    return `${Math.round(oz)} oz`;
+  }
   if (foodId === 'whole_eggs') {
     const count = Math.round(roundedGrams / 50);
     return `${count} eggs (~${roundedGrams} g)`;
@@ -323,7 +366,8 @@ export function aggregateWeeklyGrocery(
   weekPlan: WeekPlan,
   multipliers: PortionMultipliers,
   mealsById: Record<string, MealTemplate> = MEALS_BY_ID,
-  foodsById: Record<string, WholeFood> = FOODS_BY_ID
+  foodsById: Record<string, WholeFood> = FOODS_BY_ID,
+  locationId: LocationId = 'hyderabad'
 ): {
   items: GroceryAggregateItem[];
   totalWeeklyCostInr: number;
@@ -361,7 +405,7 @@ export function aggregateWeeklyGrocery(
         food,
         totalGrams: Math.round(totalGrams),
         totalCostInr,
-        practicalQuantityLabel: formatPracticalQuantity(foodId, totalGrams),
+        practicalQuantityLabel: formatPracticalQuantity(foodId, totalGrams, locationId),
       };
     })
     .filter((x): x is GroceryAggregateItem => x !== null)

@@ -17,25 +17,25 @@ const TAB_TITLES: Record<ActiveTab, string> = {
 
 export function TopBar({ activeTab, onOpenMobileMenu, onExportGroceryCsv }: TopBarProps) {
   return (
-    <header className="sticky top-0 z-30 h-14 lg:h-16 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-30 h-14 lg:h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2.5 min-w-0">
         <button
           type="button"
           onClick={onOpenMobileMenu}
           aria-label="Open navigation menu"
-          className="lg:hidden p-2 -ml-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="lg:hidden p-2 -ml-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2 text-sm min-w-0">
-          <span className="hidden sm:inline font-display font-semibold text-slate-500 whitespace-nowrap shrink-0">
+          <span className="hidden sm:inline font-display font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap shrink-0">
             HydraPrep
           </span>
-          <span className="hidden sm:inline text-slate-300" aria-hidden="true">
+          <span className="hidden sm:inline text-slate-300 dark:text-slate-600" aria-hidden="true">
             /
           </span>
-          <h1 className="font-display font-semibold text-slate-900 truncate">
+          <h1 className="font-display font-semibold text-slate-900 dark:text-slate-100 truncate">
             {TAB_TITLES[activeTab]}
           </h1>
         </div>
