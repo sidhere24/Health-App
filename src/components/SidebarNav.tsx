@@ -179,7 +179,7 @@ export function SidebarNav({
                   type="button"
                   aria-pressed={active}
                   onClick={() => onUpdateProfile({ ...profile, sex: opt.id })}
-                  className={`py-1.5 min-h-[36px] text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  className={`py-1.5 min-h-[44px] text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
                     active
                       ? 'bg-white text-slate-900 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -203,7 +203,7 @@ export function SidebarNav({
               aria-label="Location and Local Markets"
               value={profile.locationId}
               onChange={(e) => onChangeLocation(e.target.value as LocationId)}
-              className="w-full px-3 py-2 min-h-[40px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+              className="w-full px-3 py-2 min-h-[44px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
             >
               {Object.values(REGIONS).map((loc) => (
                 <option key={loc.id} value={loc.id}>
@@ -221,7 +221,7 @@ export function SidebarNav({
                 const preset = AGE_GROUPS.find((g) => g.id === (e.target.value as AgeGroupId));
                 if (preset) onUpdateProfile({ ...profile, age: preset.defaultAge });
               }}
-              className="w-full px-3 py-2 min-h-[40px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+              className="w-full px-3 py-2 min-h-[44px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
             >
               {AGE_GROUPS.map((g) => (
                 <option key={g.id} value={g.id}>
@@ -236,7 +236,7 @@ export function SidebarNav({
             <select
               value={profile.diet ?? 'non-veg'}
               onChange={(e) => onChangeDiet(e.target.value as DietPreference)}
-              className="w-full px-3 py-2 min-h-[40px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+              className="w-full px-3 py-2 min-h-[44px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
             >
               <option value="non-veg">Non-Veg (All Whole Foods)</option>
               <option value="eggetarian">Eggetarian (Eggs & Veg)</option>
@@ -328,7 +328,7 @@ export function SidebarNav({
                         type="button"
                         aria-pressed={excluded}
                         onClick={() => handleToggleAllergen(opt.id)}
-                        className={`px-2.5 py-1.5 min-h-[34px] text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
+                        className={`px-2.5 py-1.5 min-h-[44px] text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
                           excluded
                             ? 'bg-amber-50 border-amber-300 text-amber-900'
                             : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -351,7 +351,7 @@ export function SidebarNav({
                     );
                     if (preset) onUpdateProfile({ ...profile, weightKg: preset.defaultWeightKg });
                   }}
-                  className="w-full px-3 py-2 min-h-[40px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+                  className="w-full px-3 py-2 min-h-[44px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
                 >
                   {WEIGHT_CLASSES.map((w) => (
                     <option key={w.id} value={w.id}>
@@ -375,7 +375,7 @@ export function SidebarNav({
                         onUpdateProfile({ ...profile, age: val });
                       }
                     }}
-                    className="w-full px-2 py-2 min-h-[38px] text-xs font-mono tabular-nums bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+                    className="w-full px-2 py-2 min-h-[44px] text-xs font-mono tabular-nums bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
                   />
                 </label>
                 <label className="block">
@@ -391,7 +391,7 @@ export function SidebarNav({
                         onUpdateProfile({ ...profile, weightKg: val });
                       }
                     }}
-                    className="w-full px-2 py-2 min-h-[38px] text-xs font-mono tabular-nums bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+                    className="w-full px-2 py-2 min-h-[44px] text-xs font-mono tabular-nums bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
                   />
                 </label>
                 <label className="block">
@@ -407,7 +407,7 @@ export function SidebarNav({
                         onUpdateProfile({ ...profile, heightCm: val });
                       }
                     }}
-                    className="w-full px-2 py-2 min-h-[38px] text-xs font-mono tabular-nums bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+                    className="w-full px-2 py-2 min-h-[44px] text-xs font-mono tabular-nums bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
                   />
                 </label>
               </div>
@@ -417,7 +417,7 @@ export function SidebarNav({
                 <select
                   value={profile.goal}
                   onChange={(e) => onUpdateProfile({ ...profile, goal: e.target.value as GoalMode })}
-                  className="w-full px-3 py-2 min-h-[40px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+                  className="w-full px-3 py-2 min-h-[44px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
                 >
                   <option value="recomp">Tone & Recomp</option>
                   <option value="fat-loss">Steady Fat Loss</option>
@@ -432,7 +432,7 @@ export function SidebarNav({
                   onChange={(e) =>
                     onUpdateProfile({ ...profile, activity: e.target.value as ActivityLevel })
                   }
-                  className="w-full px-3 py-2 min-h-[40px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
+                  className="w-full px-3 py-2 min-h-[44px] text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-teal-700"
                 >
                   <option value="moderate">Light–Moderate (2–3d/wk)</option>
                   <option value="active">Active (4–5d/wk)</option>

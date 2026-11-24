@@ -324,7 +324,7 @@ export function DailyOverviewView({
                   role="tab"
                   aria-selected={isSelected}
                   onClick={() => onSelectDay(day)}
-                  className={`px-3 py-1.5 min-h-[40px] text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                  className={`px-3 py-1.5 min-h-[44px] text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                     isSelected
                       ? 'bg-white text-slate-900 shadow-xs border border-slate-200/70'
                       : 'text-slate-600 hover:text-slate-900'
@@ -605,7 +605,7 @@ export function DailyOverviewView({
                       </button>
 
                       <div className="min-w-0 space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:text-sm text-slate-600">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm sm:text-base text-slate-600">
                           <span className="font-semibold text-slate-800">{slotMeta.label}</span>
                           <span aria-hidden="true">·</span>
                           <span className="font-mono tabular-nums">{slotMeta.timeWindow}</span>
@@ -637,7 +637,7 @@ export function DailyOverviewView({
                           {meal.hormonalBenefit}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-xs sm:text-sm font-mono tabular-nums text-slate-700">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm sm:text-base font-mono tabular-nums text-slate-700">
                           <span className="font-semibold text-slate-900">{stats.calories} kcal</span>
                           <span>{stats.proteinG}g P</span>
                           <span>{stats.carbsG}g C</span>
@@ -736,10 +736,10 @@ export function DailyOverviewView({
                   {isExpanded && (
                     <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <h5 className="text-xs sm:text-sm font-semibold text-slate-800 mb-2">
+                        <h5 className="text-sm sm:text-base font-semibold text-slate-800 mb-2">
                           Whole-Food Ingredients ({mult}× portion)
                         </h5>
-                        <table className="w-full text-xs sm:text-sm">
+                        <table className="w-full text-sm sm:text-base">
                           <tbody className="divide-y divide-slate-100">
                             {meal.ingredients.map((ing) => {
                               const food = foodsById[ing.foodId];
@@ -767,7 +767,7 @@ export function DailyOverviewView({
                                       target="_blank"
                                       rel="noopener noreferrer sponsored"
                                       aria-label={`Buy ${food.name} (${link.sourceLabel})`}
-                                      className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900 underline-offset-2 hover:underline"
+                                      className="inline-flex items-center gap-1 text-sm sm:text-base font-medium text-teal-700 hover:text-teal-900 underline-offset-2 hover:underline"
                                     >
                                       <span>{link.isCustom ? 'Link' : 'Buy'}</span>
                                       <ExternalLink className="w-3 h-3" />
@@ -781,10 +781,10 @@ export function DailyOverviewView({
                       </div>
 
                       <div>
-                        <h5 className="text-xs sm:text-sm font-semibold text-slate-800 mb-2">
+                        <h5 className="text-sm sm:text-base font-semibold text-slate-800 mb-2">
                           Preparation Steps
                         </h5>
-                        <ol className="space-y-2 text-xs sm:text-sm text-slate-600 list-decimal list-inside">
+                        <ol className="space-y-2 text-sm sm:text-base text-slate-600 list-decimal list-inside">
                           {meal.prepSteps.map((step, idx) => (
                             <li key={idx} className="leading-relaxed">
                               {step}
